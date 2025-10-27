@@ -1,4 +1,4 @@
-hibana_helper = Hibana::Helper.new
+app_helper = ApplicationHelper.new
 
 # --- ルート定義 ---
 get "/" do |c|
@@ -6,7 +6,7 @@ get "/" do |c|
 end
 
 get "/kv" do |c|
-  hibana_helper.run_kv_test
+  app_helper.run_kv_test
 end
 
 get "/d1" do |c|
