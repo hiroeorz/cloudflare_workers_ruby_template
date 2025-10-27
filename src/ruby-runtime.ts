@@ -4,19 +4,25 @@ import rubyWasmAsset from "@ruby/3.4-wasm-wasi/dist/ruby+stdlib.wasm"
 import type { Env } from "./types.d.ts"
 
 type HostGlobals = typeof globalThis & {
-  tsAccessKV?: (key: string, value: string) => Promise<string>
+  tsKvPut?: (key: string, value: string) => Promise<void>
+  tsKvGet?: (key: string) => Promise<string | null>
   tsRunD1Query?: (sql: string, bindings: unknown[]) => Promise<string>
 }
 
 let rubyVmPromise: Promise<RubyVM> | null = null
 
 const KV_TEST_SCRIPT = `
-  # Ruby側でKVを操作するTypeScript関数を呼び出す
-  key = "ruby-wasm-key"
-  value = "Hello from Ruby! 👋"
+  key = "ruby-kv-key"
+  value = "Hello from separated KV functions!"
 
-  # tsAccessKV は Promise を返すので .await で待つ
-  HostBridge.access_kv(key, value).await
+  # 1. putで値を書き込む
+  HostBridge.kv_put(key, value).await
+
+  # 2. getで値を読み込む
+  read_value = HostBridge.kv_get(key).await
+
+  # 3. 結果を文字列として組み立てる
+  "Wrote '#{value}' to KV. Read back: '#{read_value}'"
 `
 
 const D1_TEST_SCRIPT = `
@@ -68,12 +74,15 @@ export async function runRubyD1Test(env: Env): Promise<string> {
 function registerHostFunctions(vm: RubyVM, env: Env): void {
   const host = globalThis as HostGlobals
 
-  // KVにアクセスする非同期関数
-  if (typeof host.tsAccessKV !== "function") {
-    host.tsAccessKV = async (key: string, value: string): Promise<string> => {
+  // KVのput/get関数
+  if (typeof host.tsKvPut !== "function") {
+    host.tsKvPut = async (key: string, value: string): Promise<void> => {
       await env.MY_KV.put(key, value)
-      const readValue = await env.MY_KV.get(key)
-      return `Wrote '${value}' to KV. Read back: '${readValue}'.`
+    }
+  }
+  if (typeof host.tsKvGet !== "function") {
+    host.tsKvGet = async (key: string): Promise<string | null> => {
+      return env.MY_KV.get(key)
     }
   }
 
@@ -97,10 +106,14 @@ function registerHostFunctions(vm: RubyVM, env: Env): void {
   const bridgeModule = vm.eval(`
     module HostBridge
       class << self
-        attr_accessor :ts_kv, :ts_run_d1_query
+        attr_accessor :ts_kv_put, :ts_kv_get, :ts_run_d1_query
 
-        def access_kv(key, value)
-          ts_kv.apply(key, value).await
+        def kv_put(key, value)
+          ts_kv_put.apply(key, value).await
+        end
+
+        def kv_get(key)
+          ts_kv_get.apply(key).await
         end
 
         def run_d1_query(sql, bindings)
@@ -111,6 +124,7 @@ function registerHostFunctions(vm: RubyVM, env: Env): void {
     HostBridge
   `)
 
-  bridgeModule.call("ts_kv=", vm.wrap(host.tsAccessKV))
+  bridgeModule.call("ts_kv_put=", vm.wrap(host.tsKvPut))
+  bridgeModule.call("ts_kv_get=", vm.wrap(host.tsKvGet))
   bridgeModule.call("ts_run_d1_query=", vm.wrap(host.tsRunD1Query))
 }
