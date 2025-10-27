@@ -22,7 +22,7 @@ const KV_TEST_SCRIPT = `
   read_value = HostBridge.kv_get(key).await
 
   # 3. 結果を文字列として組み立てる
-  "Wrote '#{value}' to KV. Read back: '#{read_value}'"
+  "Wrote '#{value}' to KV. \nRead back: '#{read_value}'"
 `
 
 const D1_TEST_SCRIPT = `
