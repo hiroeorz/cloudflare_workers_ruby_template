@@ -29,3 +29,35 @@ if (typeof globalThis.FinalizationRegistry === "undefined") {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ;(globalThis as any).FinalizationRegistry = NoopFinalizationRegistry
 }
+
+// Cloudflare Workers では new Function が禁止されているため、js gem が利用する最小限のケースのみ許可する
+const allowedFunctionBodies = new Map<string, () => unknown>([
+  ["return undefined", () => undefined],
+  ["return null", () => null],
+  ["return true;", () => true],
+  ["return false;", () => false],
+  // js gem が配列を変換するために利用する
+  ["return []", () => []],
+])
+
+if (typeof globalThis.Function === "function") {
+  const OriginalFunction = globalThis.Function
+
+  const FunctionStub = function (...args: string[]): (...fnArgs: unknown[]) => unknown {
+    if (args.length > 0) {
+      const body = args[args.length - 1]
+      const handler = allowedFunctionBodies.get(body)
+      if (handler) {
+        // @ts-expect-error The function signature is dynamic.
+        return handler
+      }
+    }
+    throw new Error("Dynamic code generation is not permitted")
+  }
+
+  Object.setPrototypeOf(FunctionStub, OriginalFunction)
+  FunctionStub.prototype = OriginalFunction.prototype
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ;(globalThis as any).Function = FunctionStub
+}
