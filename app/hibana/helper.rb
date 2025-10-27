@@ -1,6 +1,5 @@
-# Hibanaモジュールを定義
 module Hibana
-  class App
+  class Helper
     def run_kv_test
       key = "ruby-kv-key"
       value = "Hello from separated KV functions!"
@@ -23,5 +22,5 @@ Read back: '#{read_value}'"
   end
 end
 
-# TypeScriptから呼び出すために、Hibana::Appクラスのインスタンスを生成しておく
-Hibana::App.new
+# TypeScriptから呼び出すために、Hibana::Helperクラスのインスタンスを生成しておく
+Hibana::Helper.new

@@ -3,7 +3,7 @@ import type { RubyVM } from "@ruby/wasm-wasi"
 import rubyWasmAsset from "@ruby/3.4-wasm-wasi/dist/ruby+stdlib.wasm"
 import type { Env } from "./types.d.ts"
 import hostBridgeScript from "../app/host_bridge.rb"
-import hibanaAppScript from "../app/hibana/app.rb"
+import hibanaHelperScript from "../app/hibana/helper.rb"
 import routingScript from "../app/hibana/routing.rb"
 import appScript from "../app/app.rb"
 
@@ -34,7 +34,7 @@ async function setupRubyVM(env: Env): Promise<RubyVM> {
       // 順序が重要
       await vm.evalAsync(hostBridgeScript) // 1. ブリッジ
       registerHostFunctions(vm, env) // 2. ブリッジに関数を登録
-      await vm.evalAsync(hibanaAppScript) // 3. アプリケーションロジック
+      await vm.evalAsync(hibanaHelperScript) // 3. アプリケーションロジック
       await vm.evalAsync(routingScript) // 4. ルーティングDSL
       await vm.evalAsync(appScript) // 5. ルート定義
 
