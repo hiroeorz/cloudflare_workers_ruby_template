@@ -5,7 +5,7 @@ import type { Env } from "./types.d.ts"
 
 type HostGlobals = typeof globalThis & {
   tsAccessKV?: (key: string, value: string) => Promise<string>
-  tsAccessD1?: (id: number) => Promise<string>
+  tsRunD1Query?: (sql: string, bindings: unknown[]) => Promise<string>
 }
 
 let rubyVmPromise: Promise<RubyVM> | null = null
@@ -20,9 +20,12 @@ const KV_TEST_SCRIPT = `
 `
 
 const D1_TEST_SCRIPT = `
-  # D1からID 1 の投稿を取得する
-  post_id = 1
-  HostBridge.access_d1(post_id).await
+  # Ruby側でSQLとバインド値を定義
+  sql = "SELECT id, content FROM posts WHERE id = ?"
+  bindings = [1]
+
+  # TypeScript側の関数を呼び出し、結果(JSON文字列)を待つ
+  HostBridge.run_d1_query(sql, bindings).await
 `
 
 async function ensureRubyVM(env: Env): Promise<RubyVM> {
@@ -74,15 +77,18 @@ function registerHostFunctions(vm: RubyVM, env: Env): void {
     }
   }
 
-  // D1にアクセスする非同期関数
-  if (typeof host.tsAccessD1 !== "function") {
-    host.tsAccessD1 = async (id: number): Promise<string> => {
-      const stmt = env.DB.prepare("SELECT content FROM posts WHERE id = ?")
-      const result = await stmt.bind(id).first<{ content: string }>()
-      if (result) {
-        return `D1から取得(id: ${id}): ${result.content}`
+  // D1クエリを実行する汎用的な非同期関数
+  if (typeof host.tsRunD1Query !== "function") {
+    host.tsRunD1Query = async (sql: string, bindings: unknown[]): Promise<string> => {
+      try {
+        const stmt = env.DB.prepare(sql)
+        const bindingsArray = Array.isArray(bindings) ? bindings : [bindings]
+        const { results } = await stmt.bind(...bindingsArray).all()
+        return JSON.stringify(results)
+      } catch (e) {
+        const error = e instanceof Error ? e.message : String(e)
+        return JSON.stringify({ error })
       }
-      return `D1にid: ${id}のデータはありませんでした。`
     }
   }
 
@@ -91,14 +97,14 @@ function registerHostFunctions(vm: RubyVM, env: Env): void {
   const bridgeModule = vm.eval(`
     module HostBridge
       class << self
-        attr_accessor :ts_kv, :ts_d1
+        attr_accessor :ts_kv, :ts_run_d1_query
 
         def access_kv(key, value)
           ts_kv.apply(key, value).await
         end
 
-        def access_d1(id)
-          ts_d1.apply(id).await
+        def run_d1_query(sql, bindings)
+          ts_run_d1_query.apply(sql, bindings).await
         end
       end
     end
@@ -106,5 +112,5 @@ function registerHostFunctions(vm: RubyVM, env: Env): void {
   `)
 
   bridgeModule.call("ts_kv=", vm.wrap(host.tsAccessKV))
-  bridgeModule.call("ts_d1=", vm.wrap(host.tsAccessD1))
+  bridgeModule.call("ts_run_d1_query=", vm.wrap(host.tsRunD1Query))
 }
