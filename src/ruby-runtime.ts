@@ -3,6 +3,7 @@ import type { RubyVM, RubyObject } from "@ruby/wasm-wasi"
 import rubyWasmAsset from "@ruby/3.4-wasm-wasi/dist/ruby+stdlib.wasm"
 import type { Env } from "./types.d.ts"
 import rubyScript from "../app/app.rb"
+import hostBridgeScript from "../app/host_bridge.rb"
 
 type HostGlobals = typeof globalThis & {
   tsKvPut?: (key: string, value: string) => Promise<void>
@@ -27,6 +28,9 @@ async function ensureRubyApp(env: Env): Promise<RubyObject> {
           RUBYOPT: "--disable-did_you_mean",
         },
       })
+
+      // ブリッジを先に評価する
+      await vm.evalAsync(hostBridgeScript)
 
       registerHostFunctions(vm, env)
 
@@ -84,28 +88,9 @@ function registerHostFunctions(vm: RubyVM, env: Env): void {
 
   vm.eval('require "js"')
 
-  const bridgeModule = vm.eval(`
-    module HostBridge
-      class << self
-        attr_accessor :ts_kv_put, :ts_kv_get, :ts_run_d1_query
+  const HostBridge = vm.eval("HostBridge")
 
-        def kv_put(key, value)
-          ts_kv_put.apply(key, value).await
-        end
-
-        def kv_get(key)
-          ts_kv_get.apply(key).await
-        end
-
-        def run_d1_query(sql, bindings)
-          ts_run_d1_query.apply(sql, bindings).await
-        end
-      end
-    end
-    HostBridge
-  `)
-
-  bridgeModule.call("ts_kv_put=", vm.wrap(host.tsKvPut))
-  bridgeModule.call("ts_kv_get=", vm.wrap(host.tsKvGet))
-  bridgeModule.call("ts_run_d1_query=", vm.wrap(host.tsRunD1Query))
+  HostBridge.call("ts_kv_put=", vm.wrap(host.tsKvPut))
+  HostBridge.call("ts_kv_get=", vm.wrap(host.tsKvGet))
+  HostBridge.call("ts_run_d1_query=", vm.wrap(host.tsRunD1Query))
 }
