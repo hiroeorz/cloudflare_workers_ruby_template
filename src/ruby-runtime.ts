@@ -10,8 +10,8 @@ let rubyVmPromise: Promise<RubyVM> | null = null
 
 const HELLO_SCRIPT = `
   # Ruby側でTypeScript関数を呼び出して足し算結果を取得
-  left = 21
-  right = 21
+  left = 1
+  right = 3
   HostBridge.add_numbers(left, right)
 `
 
