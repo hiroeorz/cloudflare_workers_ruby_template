@@ -15,5 +15,8 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20251014.0",
     "wrangler": "^4.45.0"
+  },
+  "dependencies": {
+    "@ruby/3.4-wasm-wasi": "file:vendor/ruby/ruby-3.4-wasm-wasi-2.7.2.tgz"
   }
 }

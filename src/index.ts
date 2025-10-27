@@ -1,14 +1,27 @@
+import "./polyfills"
+import { runRubyHello } from "./ruby-runtime"
+
 export default {
   async fetch(request: Request): Promise<Response> {
     const { pathname } = new URL(request.url)
 
     if (pathname === "/") {
-      return new Response("hello ruby!", {
-        headers: { "content-type": "text/plain; charset=UTF-8" },
-      })
+      try {
+        const message = await runRubyHello()
+        return new Response(message, {
+          headers: { "content-type": "text/plain; charset=UTF-8" },
+        })
+      } catch (error) {
+        const reason =
+          error instanceof Error ? error.message : "予期しないエラーが発生しました"
+        return new Response(`Ruby実行エラー: ${reason}`, {
+          status: 500,
+          headers: { "content-type": "text/plain; charset=UTF-8" },
+        })
+      }
     }
 
-    return new Response("Not Found", {
+    return new Response("ページが見つかりません", {
       status: 404,
       headers: { "content-type": "text/plain; charset=UTF-8" },
     })
