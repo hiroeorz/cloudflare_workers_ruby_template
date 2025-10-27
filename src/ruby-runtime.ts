@@ -2,7 +2,7 @@ import { DefaultRubyVM } from "@ruby/wasm-wasi/dist/browser"
 import type { RubyVM, RubyObject } from "@ruby/wasm-wasi"
 import rubyWasmAsset from "@ruby/3.4-wasm-wasi/dist/ruby+stdlib.wasm"
 import type { Env } from "./types.d.ts"
-import rubyScript from "../app/app.rb"
+import hibanaAppScript from "../app/hibana/app.rb"
 import hostBridgeScript from "../app/host_bridge.rb"
 
 type HostGlobals = typeof globalThis & {
@@ -35,7 +35,7 @@ async function ensureRubyApp(env: Env): Promise<RubyObject> {
       registerHostFunctions(vm, env)
 
       // app.rbを評価し、Hibana::Appのインスタンスを返す
-      return vm.evalAsync(rubyScript)
+      return vm.evalAsync(hibanaAppScript)
     })()
   }
   return rubyAppPromise
