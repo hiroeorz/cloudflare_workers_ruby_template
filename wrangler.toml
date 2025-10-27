@@ -11,3 +11,8 @@ id = "ce12850a87e743d19fd008a5b32cc336"
 binding = "DB" # Ruby/JSからアクセスしやすいようにbinding名をDBに変更します
 database_name = "wasm-d1-test"
 database_id = "5f755bff-6d38-4575-8ef5-6a0ed4861503"
+
+[[rules]]
+type = "Text"
+globs = ["**/*.rb"]
+fallthrough = true
