@@ -5,4 +5,5 @@ declare module "*.wasm" {
 
 export interface Env {
   MY_KV: KVNamespace
+  DB: D1Database
 }
