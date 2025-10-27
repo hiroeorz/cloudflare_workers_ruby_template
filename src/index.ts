@@ -1,13 +1,14 @@
 import "./polyfills"
-import { runRubyHello } from "./ruby-runtime"
+import { runRubyKVTest } from "./ruby-runtime"
+import type { Env } from "./types.d.ts"
 
 export default {
-  async fetch(request: Request): Promise<Response> {
+  async fetch(request: Request, env: Env): Promise<Response> {
     const { pathname } = new URL(request.url)
 
     if (pathname === "/") {
       try {
-        const message = await runRubyHello()
+        const message = await runRubyKVTest(env)
         return new Response(message, {
           headers: { "content-type": "text/plain; charset=UTF-8" },
         })

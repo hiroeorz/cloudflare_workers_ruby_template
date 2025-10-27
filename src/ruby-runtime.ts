@@ -1,21 +1,31 @@
 import { DefaultRubyVM } from "@ruby/wasm-wasi/dist/browser"
 import type { RubyVM } from "@ruby/wasm-wasi"
 import rubyWasmAsset from "@ruby/3.4-wasm-wasi/dist/ruby+stdlib.wasm"
+import type { Env } from "./types.d.ts"
 
 type HostGlobals = typeof globalThis & {
-  tsAddNumbers?: (a: number, b: number) => string
+  tsAccessKV?: (key: string, value: string) => Promise<string>
+  tsAccessD1?: (id: number) => Promise<string>
 }
 
 let rubyVmPromise: Promise<RubyVM> | null = null
 
-const HELLO_SCRIPT = `
-  # Ruby側でTypeScript関数を呼び出して足し算結果を取得
-  left = 1
-  right = 3
-  HostBridge.add_numbers(left, right)
+const KV_TEST_SCRIPT = `
+  # Ruby側でKVを操作するTypeScript関数を呼び出す
+  key = "ruby-wasm-key"
+  value = "Hello from Ruby! 👋"
+
+  # tsAccessKV は Promise を返すので .await で待つ
+  HostBridge.access_kv(key, value).await
 `
 
-async function ensureRubyVM(): Promise<RubyVM> {
+const D1_TEST_SCRIPT = `
+  # D1からID 1 の投稿を取得する
+  post_id = 1
+  HostBridge.access_d1(post_id).await
+`
+
+async function ensureRubyVM(env: Env): Promise<RubyVM> {
   if (!rubyVmPromise) {
     rubyVmPromise = (async () => {
       const moduleCandidate = rubyWasmAsset as unknown
@@ -31,7 +41,7 @@ async function ensureRubyVM(): Promise<RubyVM> {
         },
       })
 
-      registerHostFunctions(vm)
+      registerHostFunctions(vm, env)
 
       return vm
     })()
@@ -40,21 +50,39 @@ async function ensureRubyVM(): Promise<RubyVM> {
   return rubyVmPromise
 }
 
-export async function runRubyHello(): Promise<string> {
-  const vm = await ensureRubyVM()
-  const result = vm.eval(HELLO_SCRIPT)
+export async function runRubyKVTest(env: Env): Promise<string> {
+  const vm = await ensureRubyVM(env)
+  const result = await vm.evalAsync(KV_TEST_SCRIPT)
   return result.toString()
 }
 
-function registerHostFunctions(vm: RubyVM): void {
+export async function runRubyD1Test(env: Env): Promise<string> {
+  const vm = await ensureRubyVM(env)
+  const result = await vm.evalAsync(D1_TEST_SCRIPT)
+  return result.toString()
+}
+
+function registerHostFunctions(vm: RubyVM, env: Env): void {
   const host = globalThis as HostGlobals
 
-  if (typeof host.tsAddNumbers !== "function") {
-    host.tsAddNumbers = (a: number, b: number): string => {
-      const left = coerceToFiniteNumber(a, "a")
-      const right = coerceToFiniteNumber(b, "b")
-      const sum = left + right
-      return `TypeScript sum result: ${sum}`
+  // KVにアクセスする非同期関数
+  if (typeof host.tsAccessKV !== "function") {
+    host.tsAccessKV = async (key: string, value: string): Promise<string> => {
+      await env.MY_KV.put(key, value)
+      const readValue = await env.MY_KV.get(key)
+      return `Wrote '${value}' to KV. Read back: '${readValue}'.`
+    }
+  }
+
+  // D1にアクセスする非同期関数
+  if (typeof host.tsAccessD1 !== "function") {
+    host.tsAccessD1 = async (id: number): Promise<string> => {
+      const stmt = env.DB.prepare("SELECT content FROM posts WHERE id = ?")
+      const result = await stmt.bind(id).first<{ content: string }>()
+      if (result) {
+        return `D1から取得(id: ${id}): ${result.content}`
+      }
+      return `D1にid: ${id}のデータはありませんでした。`
     }
   }
 
@@ -63,23 +91,20 @@ function registerHostFunctions(vm: RubyVM): void {
   const bridgeModule = vm.eval(`
     module HostBridge
       class << self
-        attr_accessor :ts_add
+        attr_accessor :ts_kv, :ts_d1
 
-        def add_numbers(a, b)
-          ts_add.apply(a, b)
+        def access_kv(key, value)
+          ts_kv.apply(key, value).await
+        end
+
+        def access_d1(id)
+          ts_d1.apply(id).await
         end
       end
     end
     HostBridge
   `)
 
-  bridgeModule.call("ts_add=", vm.wrap(host.tsAddNumbers))
-}
-
-function coerceToFiniteNumber(value: unknown, label: string): number {
-  const num = Number(value)
-  if (!Number.isFinite(num)) {
-    throw new TypeError(`Invalid ${label} value: ${value}`)
-  }
-  return num
+  bridgeModule.call("ts_kv=", vm.wrap(host.tsAccessKV))
+  bridgeModule.call("ts_d1=", vm.wrap(host.tsAccessD1))
 }
