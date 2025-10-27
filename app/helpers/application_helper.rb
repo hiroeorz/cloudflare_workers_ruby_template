@@ -7,8 +7,7 @@ class ApplicationHelper
     HostBridge.kv_put(key, value).await
     read_value = HostBridge.kv_get(key).await
 
-    "Wrote '#{value}' to KV. 
-Read back: '#{read_value}'"
+    "Wrote '#{value}' to KV. Read back: '#{read_value}'"
   end
 
   def run_d1_test
