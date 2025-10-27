@@ -1,9 +1,11 @@
 import { DefaultRubyVM } from "@ruby/wasm-wasi/dist/browser"
-import type { RubyVM, RubyObject } from "@ruby/wasm-wasi"
+import type { RubyVM } from "@ruby/wasm-wasi"
 import rubyWasmAsset from "@ruby/3.4-wasm-wasi/dist/ruby+stdlib.wasm"
 import type { Env } from "./types.d.ts"
-import hibanaAppScript from "../app/hibana/app.rb"
 import hostBridgeScript from "../app/host_bridge.rb"
+import hibanaAppScript from "../app/hibana/app.rb"
+import routingScript from "../app/hibana/routing.rb"
+import appScript from "../app/app.rb"
 
 type HostGlobals = typeof globalThis & {
   tsKvPut?: (key: string, value: string) => Promise<void>
@@ -11,11 +13,11 @@ type HostGlobals = typeof globalThis & {
   tsRunD1Query?: (sql: string, bindings: unknown[]) => Promise<string>
 }
 
-let rubyAppPromise: Promise<RubyObject> | null = null
+let rubyVmPromise: Promise<RubyVM> | null = null
 
-async function ensureRubyApp(env: Env): Promise<RubyObject> {
-  if (!rubyAppPromise) {
-    rubyAppPromise = (async () => {
+async function setupRubyVM(env: Env): Promise<RubyVM> {
+  if (!rubyVmPromise) {
+    rubyVmPromise = (async () => {
       const moduleCandidate = rubyWasmAsset as unknown
       const module =
         moduleCandidate instanceof WebAssembly.Module
@@ -29,27 +31,31 @@ async function ensureRubyApp(env: Env): Promise<RubyObject> {
         },
       })
 
-      // ブリッジを先に評価する
-      await vm.evalAsync(hostBridgeScript)
+      // 順序が重要
+      await vm.evalAsync(hostBridgeScript) // 1. ブリッジ
+      registerHostFunctions(vm, env) // 2. ブリッジに関数を登録
+      await vm.evalAsync(hibanaAppScript) // 3. アプリケーションロジック
+      await vm.evalAsync(routingScript) // 4. ルーティングDSL
+      await vm.evalAsync(appScript) // 5. ルート定義
 
-      registerHostFunctions(vm, env)
-
-      // app.rbを評価し、Hibana::Appのインスタンスを返す
-      return vm.evalAsync(hibanaAppScript)
+      return vm
     })()
   }
-  return rubyAppPromise
+  return rubyVmPromise
 }
 
-export async function runRubyKVTest(env: Env): Promise<string> {
-  const rubyApp = await ensureRubyApp(env)
-  const result = await rubyApp.callAsync("run_kv_test")
-  return result.toString()
-}
+export async function handleRequest(
+  env: Env,
+  request: Request,
+): Promise<string> {
+  const vm = await setupRubyVM(env)
+  const { pathname } = new URL(request.url)
 
-export async function runRubyD1Test(env: Env): Promise<string> {
-  const rubyApp = await ensureRubyApp(env)
-  const result = await rubyApp.callAsync("run_d1_test")
+  // Rubyのdispatch関数を呼び出す
+  const context = vm.eval("{}") // シンプルなコンテキスト
+  const result = await vm.evalAsync(
+    `dispatch("${request.method}", "${pathname}", ${context})`,
+  )
   return result.toString()
 }
 
