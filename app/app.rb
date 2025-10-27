@@ -1,12 +1,8 @@
-# アプリケーションロジックを読み込む
-# require_relative はWASM環境では使えないため、TypeScript側で読み込み順を制御します
-
-# アプリケーションインスタンスを生成
 hibana_helper = Hibana::Helper.new
 
 # --- ルート定義 ---
 get "/" do |c|
-  "Hello from Ruby Router! ⚡"
+  "Hello from Ruby Router!"
 end
 
 get "/kv" do |c|
@@ -14,5 +10,6 @@ get "/kv" do |c|
 end
 
 get "/d1" do |c|
-  hibana_helper.run_d1_test
+  db = D1::Database.new
+  db.prepare("SELECT * FROM posts WHERE id = ?").bind(1).first
 end

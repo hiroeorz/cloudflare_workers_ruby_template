@@ -2,6 +2,7 @@ import { DefaultRubyVM } from "@ruby/wasm-wasi/dist/browser"
 import type { RubyVM } from "@ruby/wasm-wasi"
 import rubyWasmAsset from "@ruby/3.4-wasm-wasi/dist/ruby+stdlib.wasm"
 import type { Env } from "./types.d.ts"
+import d1ClientScript from "../app/hibana/d1_client.rb"
 import hostBridgeScript from "../app/host_bridge.rb"
 import hibanaHelperScript from "../app/hibana/helper.rb"
 import routingScript from "../app/hibana/routing.rb"
@@ -10,7 +11,11 @@ import appScript from "../app/app.rb"
 type HostGlobals = typeof globalThis & {
   tsKvPut?: (key: string, value: string) => Promise<void>
   tsKvGet?: (key: string) => Promise<string | null>
-  tsRunD1Query?: (sql: string, bindings: unknown[]) => Promise<string>
+  tsRunD1Query?: (
+    sql: string,
+    bindings: unknown[],
+    action: "first" | "all" | "run",
+  ) => Promise<string>
 }
 
 let rubyVmPromise: Promise<RubyVM> | null = null
@@ -34,9 +39,10 @@ async function setupRubyVM(env: Env): Promise<RubyVM> {
       // 順序が重要
       await vm.evalAsync(hostBridgeScript) // 1. ブリッジ
       registerHostFunctions(vm, env) // 2. ブリッジに関数を登録
-      await vm.evalAsync(hibanaHelperScript) // 3. アプリケーションロジック
-      await vm.evalAsync(routingScript) // 4. ルーティングDSL
-      await vm.evalAsync(appScript) // 5. ルート定義
+      await vm.evalAsync(hibanaHelperScript) // 3. ヘルパー
+      await vm.evalAsync(d1ClientScript) // 4. D1クライアント
+      await vm.evalAsync(routingScript) // 5. ルーティングDSL
+      await vm.evalAsync(appScript) // 6. ルート定義
 
       return vm
     })()
@@ -79,11 +85,24 @@ function registerHostFunctions(vm: RubyVM, env: Env): void {
     host.tsRunD1Query = async (
       sql: string,
       bindings: unknown[],
+      action: "first" | "all" | "run",
     ): Promise<string> => {
       try {
         const stmt = env.DB.prepare(sql)
         const bindingsArray = Array.isArray(bindings) ? bindings : [bindings]
-        const { results } = await stmt.bind(...bindingsArray).all()
+        const preparedStmt = stmt.bind(...bindingsArray)
+        let results
+        switch (action) {
+          case "first":
+            results = await preparedStmt.first()
+            break
+          case "all":
+            results = (await preparedStmt.all()).results
+            break
+          case "run":
+            results = await preparedStmt.run()
+            break
+        }
         return JSON.stringify(results)
       } catch (e) {
         const error = e instanceof Error ? e.message : String(e)

@@ -10,8 +10,8 @@ module HostBridge
       ts_kv_get.apply(key).await
     end
 
-    def run_d1_query(sql, bindings)
-      ts_run_d1_query.apply(sql, bindings).await
+    def run_d1_query(sql, bindings, action)
+      ts_run_d1_query.apply(sql, bindings, action).await
     end
   end
 end
