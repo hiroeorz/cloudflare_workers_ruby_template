@@ -18,10 +18,18 @@ type HostGlobals = typeof globalThis & {
     args: unknown[],
   ) => Promise<unknown>
   tsRunD1Query?: (
+    binding: string,
     sql: string,
     bindings: unknown[],
     action: "first" | "all" | "run",
   ) => Promise<string>
+}
+
+type D1PreparedStatement = {
+  bind: (...args: unknown[]) => D1PreparedStatement
+  first: () => Promise<unknown>
+  all: () => Promise<{ results: unknown } | unknown>
+  run: () => Promise<unknown>
 }
 
 let rubyVmPromise: Promise<RubyVM> | null = null
@@ -106,24 +114,57 @@ function registerHostFunctions(vm: RubyVM, env: Env): void {
   // D1クエリを実行する汎用的な非同期関数
   if (typeof host.tsRunD1Query !== "function") {
     host.tsRunD1Query = async (
+      binding: string,
       sql: string,
       bindings: unknown[],
       action: "first" | "all" | "run",
     ): Promise<string> => {
       try {
-        const stmt = env.DB.prepare(sql)
+        const db = (env as Record<string, unknown>)[binding]
+        if (!db || typeof db !== "object") {
+          throw new Error(`Binding '${binding}' is not available`)
+        }
+        const prepare = (db as Record<string, unknown>).prepare
+        if (typeof prepare !== "function") {
+          throw new Error(`Binding '${binding}' does not support prepare`)
+        }
+        const stmt = Reflect.apply(prepare, db, [sql]) as D1PreparedStatement
         const bindingsArray = Array.isArray(bindings) ? bindings : [bindings]
-        const preparedStmt = stmt.bind(...bindingsArray)
+        const bindMethod = stmt.bind
+        if (typeof bindMethod !== "function") {
+          throw new Error(`Statement for '${binding}' does not support bind`)
+        }
+        const preparedStmt = Reflect.apply(
+          bindMethod,
+          stmt,
+          bindingsArray,
+        ) as D1PreparedStatement
         let results
+        const firstMethod = preparedStmt.first
+        const allMethod = preparedStmt.all
+        const runMethod = preparedStmt.run
         switch (action) {
           case "first":
-            results = await preparedStmt.first()
+            if (typeof firstMethod !== "function") {
+              throw new Error(`Statement for '${binding}' does not support first`)
+            }
+            results = await Reflect.apply(firstMethod, preparedStmt, [])
             break
           case "all":
-            results = (await preparedStmt.all()).results
+            if (typeof allMethod !== "function") {
+              throw new Error(`Statement for '${binding}' does not support all`)
+            }
+            const allResult = await Reflect.apply(allMethod, preparedStmt, [])
+            results =
+              typeof allResult === "object" && allResult && "results" in allResult
+                ? (allResult as { results: unknown }).results
+                : allResult
             break
           case "run":
-            results = await preparedStmt.run()
+            if (typeof runMethod !== "function") {
+              throw new Error(`Statement for '${binding}' does not support run`)
+            }
+            results = await Reflect.apply(runMethod, preparedStmt, [])
             break
         }
         return JSON.stringify(results)

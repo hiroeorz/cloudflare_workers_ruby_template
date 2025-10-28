@@ -16,8 +16,11 @@ module HostBridge
       end
     end
 
-    def run_d1_query(sql, bindings, action)
-      ts_run_d1_query.apply(sql, bindings, action).await
+    def run_d1_query(binding_name, sql, bindings, action)
+      unless ts_run_d1_query
+        raise "Host function 'ts_run_d1_query' is not registered"
+      end
+      ts_run_d1_query.apply(binding_name.to_s, sql, bindings, action).await
     end
 
     private

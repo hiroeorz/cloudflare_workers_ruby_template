@@ -1,6 +1,7 @@
 module D1
   class PreparedStatement
-    def initialize(sql)
+    def initialize(binding_name, sql)
+      @binding_name = binding_name
       @sql = sql
       @bindings = []
     end
@@ -11,22 +12,39 @@ module D1
     end
 
     def first
-      # 実行時に初めてTypeScript側の関数を呼び出す
-      HostBridge.run_d1_query(@sql, @bindings, "first")
+      execute("first")
     end
 
     def all
-      HostBridge.run_d1_query(@sql, @bindings, "all")
+      execute("all")
     end
 
     def run
-      HostBridge.run_d1_query(@sql, @bindings, "run")
+      execute("run")
+    end
+
+    private
+
+    def execute(action)
+      HostBridge.run_d1_query(@binding_name, @sql, @bindings, action)
     end
   end
 
   class Database
+    def initialize(binding_name)
+      @binding_name = binding_name
+    end
+
     def prepare(sql)
-      PreparedStatement.new(sql)
+      PreparedStatement.new(@binding_name, sql)
+    end
+  end
+
+  class << self
+    def register_binding(identifier)
+      RequestContext.register_binding(identifier) do |_context, binding_name|
+        Database.new(binding_name)
+      end
     end
   end
 end
