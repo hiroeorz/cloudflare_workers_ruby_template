@@ -25,6 +25,12 @@ type HostGlobals = typeof globalThis & {
   ) => Promise<string>
 }
 
+interface WorkerResponsePayload {
+  body: string
+  status: number
+  headers: Record<string, string>
+}
+
 type D1PreparedStatement = {
   bind: (...args: unknown[]) => D1PreparedStatement
   first: () => Promise<unknown>
@@ -70,7 +76,7 @@ async function setupRubyVM(env: Env): Promise<RubyVM> {
 export async function handleRequest(
   env: Env,
   request: Request,
-): Promise<string> {
+): Promise<WorkerResponsePayload> {
   const vm = await setupRubyVM(env)
   const { pathname } = new URL(request.url)
 
@@ -79,7 +85,53 @@ export async function handleRequest(
   const methodArg = vm.eval(toRubyStringLiteral(request.method))
   const pathArg = vm.eval(toRubyStringLiteral(pathname))
   const result = await dispatcher.callAsync("call", methodArg, pathArg, context)
-  return result.toString()
+  const serialized = result.toString()
+
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(serialized)
+  } catch (error) {
+    const reason =
+      error instanceof Error ? error.message : "Unknown JSON parse error"
+    throw new Error(
+      `Failed to parse Ruby response payload: ${reason}\nPayload: ${serialized}`,
+    )
+  }
+
+  if (
+    !parsed ||
+    typeof parsed !== "object" ||
+    !("body" in parsed) ||
+    !("status" in parsed) ||
+    !("headers" in parsed)
+  ) {
+    throw new Error("Ruby response payload is malformed")
+  }
+
+  const payload = parsed as {
+    body: unknown
+    status: unknown
+    headers: Record<string, unknown>
+  }
+
+  const headers: Record<string, string> = {}
+  if (payload.headers && typeof payload.headers === "object") {
+    for (const [key, value] of Object.entries(payload.headers)) {
+      if (value === undefined || value === null) {
+        continue
+      }
+      headers[key] = typeof value === "string" ? value : String(value)
+    }
+  }
+
+  const body =
+    typeof payload.body === "string" ? payload.body : String(payload.body ?? "")
+  const status =
+    typeof payload.status === "number"
+      ? payload.status
+      : Number(payload.status ?? 200)
+
+  return { body, status, headers }
 }
 
 function registerHostFunctions(vm: RubyVM, env: Env): void {

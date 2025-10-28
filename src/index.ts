@@ -5,9 +5,10 @@ import type { Env } from "./types.d.ts"
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     try {
-      const message = await handleRequest(env, request)
-      return new Response(message, {
-        headers: { "content-type": "text/plain; charset=UTF-8" },
+      const { body, status, headers } = await handleRequest(env, request)
+      return new Response(body, {
+        status,
+        headers,
       })
     } catch (error) {
       const reason =

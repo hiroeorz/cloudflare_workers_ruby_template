@@ -1,4 +1,3 @@
-app_helper = ApplicationHelper.new
 R2.register_binding("MY_R2")
 KV.register_binding("MY_KV")
 D1.register_binding("DB")
@@ -6,7 +5,7 @@ D1.register_binding("DB")
 
 # --- ルート定義 ---
 get "/" do |c|
-  "Hello from Ruby WASM"
+  c.text("Hello from Ruby WASM")
 end
 
 # Cloudflare KV sample.
@@ -18,13 +17,14 @@ get "/kv" do |c|
   kv.put(key, value)
   read_value = kv.get(key)
 
-  "Wrote '#{value}' to KV. Read back: '#{read_value}'"
+  c.text("Wrote '#{value}' to KV. Read back: '#{read_value}'")
 end
 
 # Cloudflare D1 sample.
 get "/d1" do |c|
   db = c.env(:DB)
-  db.prepare("SELECT * FROM posts WHERE id = ?").bind(1).first
+  result = db.prepare("SELECT * FROM posts WHERE id = ?").bind(1).first
+  c.text(result)
 end
 
 # Cloudflare R2 sample.
@@ -36,5 +36,5 @@ get "/r2" do |c|
   bucket.put(key, value)
   read_value = bucket.get(key).text
 
-  "Wrote '#{value}' to R2. Read back: '#{read_value}'"
+  c.text("Wrote '#{value}' to R2. Read back: '#{read_value}'")
 end
