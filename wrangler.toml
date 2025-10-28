@@ -12,6 +12,11 @@ binding = "DB" # Ruby/JSからアクセスしやすいようにbinding名をDB�
 database_name = "wasm-d1-test"
 database_id = "5f755bff-6d38-4575-8ef5-6a0ed4861503"
 
+[[r2_buckets]]
+binding = "MY_R2"
+bucket_name = "wasm-r2-sample"
+preview_bucket_name = "wasm-r2-sample"
+
 [[rules]]
 type = "Text"
 globs = ["**/*.rb"]

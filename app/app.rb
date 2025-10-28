@@ -13,3 +13,7 @@ get "/d1" do |c|
   db = D1::Database.new
   db.prepare("SELECT * FROM posts WHERE id = ?").bind(1).first
 end
+
+get "/r2" do |c|
+  app_helper.run_r2_test
+end

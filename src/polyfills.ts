@@ -31,13 +31,13 @@ if (typeof globalThis.FinalizationRegistry === "undefined") {
 }
 
 // Cloudflare Workers では new Function が禁止されているため、js gem が利用する最小限のケースのみ許可する
-const allowedFunctionBodies = new Map<string, () => unknown>([
-  ["return undefined", () => undefined],
-  ["return null", () => null],
-  ["return true;", () => true],
-  ["return false;", () => false],
+const allowedFunctionBodies = new Map<string, (...fnArgs: unknown[]) => unknown>([
+  ["return undefined", (..._args: unknown[]) => undefined],
+  ["return null", (..._args: unknown[]) => null],
+  ["return true;", (..._args: unknown[]) => true],
+  ["return false;", (..._args: unknown[]) => false],
   // js gem が配列を変換するために利用する
-  ["return []", () => []],
+  ["return []", (..._args: unknown[]) => []],
 ])
 
 if (typeof globalThis.Function === "function") {
@@ -48,7 +48,6 @@ if (typeof globalThis.Function === "function") {
       const body = args[args.length - 1]
       const handler = allowedFunctionBodies.get(body)
       if (handler) {
-        // @ts-expect-error The function signature is dynamic.
         return handler
       }
     }
