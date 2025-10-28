@@ -27,6 +27,21 @@ get "/query" do |c|
   c.text("Name: #{name}, Age: #{age}")
 end
 
+# POST sample.
+# exp:
+#   curl -i -X POST "http://localhost:8787/echo" -H "Content-Type: application/json" -d '{"name":"Shin","age":50}'
+#   curl -i -X POST "http://localhost:8787/echo" -H "Content-Type: application/x-www-form-urlencoded" --data 'foo=bar&foo=baz&age=50'
+#   curl -i -X POST "http://127.0.0.1:8787/echo" -H "Content-Type: text/plain" --data 'just text body'
+post "/echo" do |c|
+  c.json(
+    content_type: c.content_type,
+    params: c.params,
+    json_body: c.json_body,
+    form_body: c.form_body,
+    raw_body: c.raw_body,
+  )
+end
+
 # 404 NotFound sample.
 get "/hoge" do |c|
   c.status = 404

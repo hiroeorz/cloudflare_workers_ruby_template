@@ -101,9 +101,17 @@ class RequestContext
     Response.new(body: body, status: status, headers: HTML_HEADERS.merge(headers || {}))
   end
 
-  def json(data, status: 200, headers: {})
+  def json(data = nil, status: 200, headers: {}, **keyword_data)
+    payload = if !keyword_data.empty?
+      keyword_data
+    elsif data.nil?
+      {}
+    else
+      data
+    end
+
     Response.new(
-      body: JSON.generate(data),
+      body: JSON.generate(payload),
       status: status,
       headers: JSON_HEADERS.merge(headers || {}),
     )
@@ -128,6 +136,53 @@ class RequestContext
     @query = normalize_query(parsed)
   rescue JSON::ParserError
     @query = {}
+  end
+
+  def content_type
+    @content_type
+  end
+
+  def set_content_type(value)
+    @content_type = value.nil? || value.empty? ? nil : value.to_s
+  end
+
+  def raw_body
+    @raw_body
+  end
+
+  def set_raw_body(value)
+    @raw_body = value.nil? ? "" : value.to_s
+  end
+
+  def json_body
+    @json_body ||= nil
+  end
+
+  def set_json_body(value)
+    if value.nil? || value.empty?
+      @json_body = nil
+      return
+    end
+
+    @json_body = JSON.parse(value)
+  rescue JSON::ParserError
+    @json_body = nil
+  end
+
+  def form_body
+    @form_body ||= nil
+  end
+
+  def set_form_body(value)
+    if value.nil? || value.empty?
+      @form_body = nil
+      return
+    end
+
+    parsed = JSON.parse(value)
+    @form_body = normalize_query(parsed)
+  rescue JSON::ParserError
+    @form_body = nil
   end
 
   def method_missing(name, *args, &block)

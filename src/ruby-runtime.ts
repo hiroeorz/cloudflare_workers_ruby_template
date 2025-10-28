@@ -85,6 +85,7 @@ export async function handleRequest(
   const queryJson = JSON.stringify(buildQueryObject(url.searchParams))
   const queryArg = vm.eval(toRubyStringLiteral(queryJson))
   context.call("set_query_from_json", queryArg)
+  await populateBodyOnContext(context, request, vm)
   const dispatcher = vm.eval("method(:dispatch)")
   const methodArg = vm.eval(toRubyStringLiteral(request.method))
   const pathArg = vm.eval(toRubyStringLiteral(pathname))
@@ -261,4 +262,52 @@ function buildQueryObject(
     query[key] = values.length > 1 ? values : values[0] ?? ""
   })
   return query
+}
+
+async function populateBodyOnContext(
+  context: unknown,
+  request: Request,
+  vm: RubyVM,
+): Promise<void> {
+  const method = request.method.toUpperCase()
+  if (!["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+    contextCall(context, "set_raw_body", vm.eval('""'))
+    contextCall(context, "set_json_body", vm.eval("nil"))
+    contextCall(context, "set_form_body", vm.eval("nil"))
+    contextCall(context, "set_content_type", vm.eval("nil"))
+    return
+  }
+
+  const contentType = request.headers.get("content-type") ?? ""
+  contextCall(context, "set_content_type", vm.eval(toRubyStringLiteral(contentType)))
+
+  const hasJSON = contentType.includes("application/json")
+  const hasForm = contentType.includes("application/x-www-form-urlencoded")
+
+  const rawBody = await request.clone().text()
+  contextCall(context, "set_raw_body", vm.eval(toRubyStringLiteral(rawBody)))
+
+  if (hasJSON && rawBody.length > 0) {
+    contextCall(context, "set_json_body", vm.eval(toRubyStringLiteral(rawBody)))
+  } else {
+    contextCall(context, "set_json_body", vm.eval("nil"))
+  }
+
+  if (hasForm && rawBody.length > 0) {
+    const formData = buildQueryObject(new URLSearchParams(rawBody))
+    const formJson = JSON.stringify(formData)
+    contextCall(context, "set_form_body", vm.eval(toRubyStringLiteral(formJson)))
+  } else {
+    contextCall(context, "set_form_body", vm.eval("nil"))
+  }
+}
+
+function contextCall(context: unknown, method: string, arg: unknown): void {
+  if (
+    typeof context === "object" &&
+    context !== null &&
+    typeof (context as { call?: (...args: unknown[]) => unknown }).call === "function"
+  ) {
+    ;(context as { call: (...args: unknown[]) => unknown }).call(method, arg)
+  }
 }
