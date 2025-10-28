@@ -78,9 +78,13 @@ export async function handleRequest(
   request: Request,
 ): Promise<WorkerResponsePayload> {
   const vm = await setupRubyVM(env)
-  const { pathname } = new URL(request.url)
+  const url = new URL(request.url)
+  const pathname = url.pathname
 
   const context = vm.eval("RequestContext.new")
+  const queryJson = JSON.stringify(buildQueryObject(url.searchParams))
+  const queryArg = vm.eval(toRubyStringLiteral(queryJson))
+  context.call("set_query_from_json", queryArg)
   const dispatcher = vm.eval("method(:dispatch)")
   const methodArg = vm.eval(toRubyStringLiteral(request.method))
   const pathArg = vm.eval(toRubyStringLiteral(pathname))
@@ -243,4 +247,18 @@ function toRubyStringLiteral(value: string): string {
     .replace(/\n/g, "\\n")
     .replace(/\t/g, "\\t")
   return `"${escaped}"`
+}
+
+function buildQueryObject(
+  searchParams: URLSearchParams,
+): Record<string, string | string[]> {
+  const query: Record<string, string | string[]> = {}
+  searchParams.forEach((_value, key) => {
+    if (Object.prototype.hasOwnProperty.call(query, key)) {
+      return
+    }
+    const values = searchParams.getAll(key)
+    query[key] = values.length > 1 ? values : values[0] ?? ""
+  })
+  return query
 }

@@ -113,6 +113,23 @@ class RequestContext
     Response.new(body: body, status: status, headers: headers || {})
   end
 
+  def query
+    @query ||= {}
+  end
+  alias params query
+
+  def set_query_from_json(json)
+    if json.nil? || json.empty?
+      @query = {}
+      return
+    end
+
+    parsed = JSON.parse(json)
+    @query = normalize_query(parsed)
+  rescue JSON::ParserError
+    @query = {}
+  end
+
   def method_missing(name, *args, &block)
     return fetch_binding(name) if args.empty? && block.nil?
     super
@@ -134,6 +151,19 @@ class RequestContext
       else
         EnvBinding.new(key)
       end
+    end
+  end
+
+  def normalize_query(value)
+    case value
+    when Hash
+      value.each_with_object({}) do |(k, v), acc|
+        acc[k.to_s] = normalize_query(v)
+      end
+    when Array
+      value.map { |item| normalize_query(item) }
+    else
+      value
     end
   end
 end
