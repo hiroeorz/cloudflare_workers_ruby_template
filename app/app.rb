@@ -6,7 +6,7 @@ get "/" do |c|
 end
 
 get "/kv" do |c|
-  app_helper.run_kv_test
+  app_helper.run_kv_test(c)
 end
 
 get "/d1" do |c|
@@ -15,5 +15,5 @@ get "/d1" do |c|
 end
 
 get "/r2" do |c|
-  app_helper.run_r2_test
+  app_helper.run_r2_test(c)
 end

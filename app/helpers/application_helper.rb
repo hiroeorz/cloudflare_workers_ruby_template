@@ -1,11 +1,13 @@
 class ApplicationHelper
-  def run_kv_test
+  def run_kv_test(context)
     key = "ruby-kv-key"
     value = "Hello from separated KV functions!"
 
-    # TypeScript側の関数を呼び出す
-    HostBridge.kv_put(key, value).await
-    read_value = HostBridge.kv_get(key).await
+    kv = context.env(:MY_KV)
+
+    # コンテキスト経由でKVへアクセスし、データを保存・取得
+    kv.put(key, value)
+    read_value = kv.get(key)
 
     "Wrote '#{value}' to KV. Read back: '#{read_value}'"
   end
@@ -18,15 +20,15 @@ class ApplicationHelper
     HostBridge.run_d1_query(sql, bindings, "all").await # Changed to all for consistency
   end
 
-  def run_r2_test
+  def run_r2_test(context)
     key = "ruby-r2-key"
     value = "Hello from R2 sample!"
 
-    bucket = R2::Bucket.new
+    bucket = context.env(:MY_R2)
 
-    # R2へデータを書き込み、その後取得してレスポンスを作成
+    # コンテキスト経由でR2へデータを書き込み、その後取得してレスポンスを作成
     bucket.put(key, value)
-    read_value = bucket.get(key)
+    read_value = bucket.get(key)&.text
 
     if read_value.nil?
       "Wrote '#{value}' to R2. Read back failed."
