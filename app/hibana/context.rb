@@ -82,7 +82,16 @@ class RequestContext
     fetch_binding(binding_name)
   end
 
-  def text(body, status: 200, headers: {})
+  def status=(status)
+    @status = status
+  end
+
+  def status
+    @status ||= 200
+  end
+
+  def text(body, status: nil, headers: {})
+    status = self.status if status.nil?
     Response.new(body: body, status: status, headers: TEXT_HEADERS.merge(headers || {}))
   end
 

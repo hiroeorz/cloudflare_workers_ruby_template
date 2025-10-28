@@ -1,11 +1,24 @@
+# Binding register.
 R2.register_binding("MY_R2")
 KV.register_binding("MY_KV")
 D1.register_binding("DB")
 
-
 # --- ルート定義 ---
+
+# hello world
 get "/" do |c|
   c.text("Hello from Ruby WASM")
+end
+
+# 404 NotFound sample.
+get "/hoge" do |c|
+  c.status = 404
+  c.text("hoge not found.")
+end
+
+# 404 NotFound sample.
+get "/tara" do |c|
+  c.text("tara not found", status: 404)
 end
 
 # Cloudflare KV sample.
