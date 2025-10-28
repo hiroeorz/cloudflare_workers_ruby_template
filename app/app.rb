@@ -9,6 +9,7 @@ get "/" do |c|
   "Hello from Ruby WASM"
 end
 
+# Cloudflare KV sample.
 get "/kv" do |c|
   key = "ruby-kv-key"
   value = "Hello from separated KV functions!"
@@ -20,11 +21,13 @@ get "/kv" do |c|
   "Wrote '#{value}' to KV. Read back: '#{read_value}'"
 end
 
+# Cloudflare D1 sample.
 get "/d1" do |c|
   db = c.env(:DB)
   db.prepare("SELECT * FROM posts WHERE id = ?").bind(1).first
 end
 
+# Cloudflare R2 sample.
 get "/r2" do |c|
   key = "ruby-r2-key"
   value = "Hello from R2 sample!"
