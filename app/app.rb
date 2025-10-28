@@ -2,7 +2,7 @@ app_helper = ApplicationHelper.new
 
 # --- ルート定義 ---
 get "/" do |c|
-  "Hello from Ruby Router!"
+  "Hello from Ruby WASM"
 end
 
 get "/kv" do |c|

@@ -41,25 +41,14 @@ module R2
 
     def put(key, value)
       # TypeScript側のR2関数を呼び出し、完了まで待機
-      call_binding(:put, key, value)
+      HostBridge.call_async(@binding_name, :put, key, value)
     end
 
     def get(key)
-      js_object = call_binding(:get, key)
+      js_object = HostBridge.call_async(@binding_name, :get, key)
       return nil if js_object.nil?
 
       ObjectWrapper.new(js_object)
-    end
-
-    private
-
-    def call_binding(method_name, *args)
-      result = HostBridge.call_binding(@binding_name, method_name, *args)
-      if result.respond_to?(:await)
-        result.await
-      else
-        result
-      end
     end
   end
 

@@ -8,12 +8,7 @@ class EnvBinding
       raise ArgumentError, "Block is not supported for EnvBinding##{name}"
     end
 
-    result = HostBridge.call_binding(@binding_name, name, *args)
-    if result.respond_to?(:await)
-      result.await
-    else
-      result
-    end
+    HostBridge.call_async(@binding_name, name, *args)
   end
 
   def respond_to_missing?(_name, _include_private = false)
@@ -66,6 +61,7 @@ class RequestContext
 
   def fetch_binding(binding_name)
     key = binding_name.to_s
+
     @bindings[key] ||= begin
       factory = self.class.binding_factory_for(key)
       if factory
