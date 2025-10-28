@@ -1,4 +1,7 @@
 app_helper = ApplicationHelper.new
+R2.register_binding("MY_R2")
+KV.register_binding("MY_KV")
+
 
 # --- ルート定義 ---
 get "/" do |c|

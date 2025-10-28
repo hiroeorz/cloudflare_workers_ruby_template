@@ -60,5 +60,3 @@ module R2
     end
   end
 end
-
-R2.register_binding("MY_R2")

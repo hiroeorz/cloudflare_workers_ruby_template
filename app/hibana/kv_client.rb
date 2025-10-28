@@ -30,5 +30,3 @@ module KV
     end
   end
 end
-
-KV.register_binding("MY_KV")
