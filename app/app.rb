@@ -31,7 +31,7 @@ get "/r2" do |c|
 
   bucket = c.env(:MY_R2)
   bucket.put(key, value)
-  read_value = bucket.get(key)&.text
+  read_value = bucket.get(key).text
 
   "Wrote '#{value}' to R2. Read back: '#{read_value}'"
 end

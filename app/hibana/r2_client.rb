@@ -34,6 +34,24 @@ module R2
     end
   end
 
+  class NullObjectWrapper
+    def text
+      nil
+    end
+
+    def json
+      nil
+    end
+
+    def method_missing(_name, *_args, &_block)
+      nil
+    end
+
+    def respond_to_missing?(_name, _include_private = false)
+      true
+    end
+  end
+
   class Bucket
     def initialize(binding_name)
       @binding_name = binding_name.to_s
@@ -46,7 +64,7 @@ module R2
 
     def get(key)
       js_object = HostBridge.call_async(@binding_name, :get, key)
-      return nil if js_object.nil?
+      return NullObjectWrapper.new if js_object.nil?
 
       ObjectWrapper.new(js_object)
     end
