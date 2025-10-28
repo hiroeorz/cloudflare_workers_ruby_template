@@ -53,11 +53,7 @@ declare module "*ruby+stdlib.wasm" {
   export default module
 }
 
-export interface Env {
-  MY_KV: KVNamespace
-  DB: D1Database
-  MY_R2: R2Bucket
-}
+export type Env = Record<string, unknown>
 
 interface WebAssemblyModule {}
 interface WebAssemblyNamespace {

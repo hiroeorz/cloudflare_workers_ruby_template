@@ -5,7 +5,6 @@ module KV
     end
 
     def put(key, value)
-      # Workers KV defaultsを利用し、追加オプションは扱わない
       HostBridge.call_async(@binding_name, :put, key, value)
     end
 
