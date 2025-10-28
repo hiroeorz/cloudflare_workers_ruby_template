@@ -10,6 +10,14 @@ get "/" do |c|
   c.text("Hello from Ruby WASM")
 end
 
+get "/index.html" do |c|
+  c.html("<h1>Hello Cloudflare Workers!</h1>")
+end
+
+get  "/index.js" do |c|
+  c.json({name: "Hiroe", age: 50})
+end
+
 # 404 NotFound sample.
 get "/hoge" do |c|
   c.status = 404

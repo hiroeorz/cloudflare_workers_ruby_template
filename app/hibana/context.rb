@@ -52,6 +52,7 @@ class RequestContext
   @binding_matchers = []
 
   TEXT_HEADERS = { "content-type" => "text/plain; charset=UTF-8" }.freeze
+  HTML_HEADERS = { "content-type" => "text/html; charset=UTF-8" }.freeze
   JSON_HEADERS = { "content-type" => "application/json; charset=UTF-8" }.freeze
 
   class << self
@@ -93,6 +94,11 @@ class RequestContext
   def text(body, status: nil, headers: {})
     status = self.status if status.nil?
     Response.new(body: body, status: status, headers: TEXT_HEADERS.merge(headers || {}))
+  end
+
+  def html(body, status: nil, headers: {})
+    status = self.status if status.nil?
+    Response.new(body: body, status: status, headers: HTML_HEADERS.merge(headers || {}))
   end
 
   def json(data, status: 200, headers: {})
