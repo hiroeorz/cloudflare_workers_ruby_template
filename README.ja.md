@@ -1,6 +1,6 @@
 # Cloudflare Workers Ruby テンプレート
 
-このプロジェクトは Cloudflare Workers 上で動作する Hono ライクな Ruby フレームワークのテンプレートです。
+このプロジェクトは Cloudflare Workers 上で動作する Hono・Sinatraライクな Ruby フレームワークのテンプレートです。
 Ruby WASM と Cloudflare のバインディング（KV / D1 / R2 など）を含んでいます。
 
 ---
