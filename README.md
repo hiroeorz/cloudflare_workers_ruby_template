@@ -1,6 +1,6 @@
 # Cloudflare Workers Ruby Template
 
-This project is a template for experimenting with a Hono-like Ruby framework running on Cloudflare Workers. It bundles Ruby WASM together with Cloudflare bindings (KV / D1 / R2) so you can explore the stack quickly.
+This project is a template for experimenting with a Hono・Sinatra-like Ruby framework running on Cloudflare Workers. It bundles Ruby WASM together with Cloudflare bindings (KV / D1 / R2) so you can explore the stack quickly.
 
 ---
 
