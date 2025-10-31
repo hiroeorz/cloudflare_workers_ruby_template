@@ -130,4 +130,10 @@ See `app/app.rb` or `app/app_all_sample.rb` for additional details.
 
 ---
 
+## Helpers
+
+Place Ruby helper files under `app/helpers`. During development and builds, the manifest at `src/generated/helper-scripts.ts` is regenerated automatically, and every helper is evaluated when the Ruby VM boots（ `npx wrangler dev` ）. If you need to refresh the manifest manually, run `npm run build:helpers`.
+
+---
+
 This README is meant to give you a feel for the template rather than document every detail. Explore the files and sample code to tailor the project to your needs.

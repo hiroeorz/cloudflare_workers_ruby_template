@@ -5,7 +5,6 @@ import type { Env } from "./types.d.ts"
 import hostBridgeScript from "../app/hibana/host_bridge.rb"
 import contextScript from "../app/hibana/context.rb"
 import kvClientScript from "../app/hibana/kv_client.rb"
-import hibanaHelperScript from "../app/helpers/application_helper.rb"
 import d1ClientScript from "../app/hibana/d1_client.rb"
 import r2ClientScript from "../app/hibana/r2_client.rb"
 import httpClientScript from "../app/hibana/http_client.rb"
@@ -16,6 +15,7 @@ import {
   parseHttpRequestPayload,
   type HttpFetchResponsePayload,
 } from "./http-fetch-utils"
+import { helperScripts } from "./generated/helper-scripts"
 
 type HostGlobals = typeof globalThis & {
   tsCallBinding?: (
@@ -68,7 +68,9 @@ async function setupRubyVM(env: Env): Promise<RubyVM> {
       registerHostFunctions(vm, env) // 2. ブリッジに関数を登録
       await vm.evalAsync(contextScript) // 3. コンテキスト
       await vm.evalAsync(kvClientScript) // 4. KVクライアント
-      await vm.evalAsync(hibanaHelperScript) // 5. ヘルパー
+      for (const script of helperScripts) {
+        await vm.evalAsync(script) // 5. app/helpers配下
+      }
       await vm.evalAsync(d1ClientScript) // 6. D1クライアント
       await vm.evalAsync(r2ClientScript) // 7. R2クライアント
       await vm.evalAsync(httpClientScript) // 8. HTTPクライアント

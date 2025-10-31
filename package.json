@@ -4,8 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build:helpers": "node scripts/generate-helper-manifest.mjs",
+    "predev": "npm run build:helpers",
     "dev": "wrangler dev",
+    "predeploy": "npm run build:helpers",
     "deploy": "wrangler deploy",
+    "pretest": "npm run build:helpers",
     "test": "npm run test:ts && npm run test:ruby",
     "test:ts": "vitest run",
     "test:ruby": "ruby -Iapp -Iapp/hibana -Iapp/helpers test/http_client_test.rb"

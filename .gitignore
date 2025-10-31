@@ -4,3 +4,4 @@ dist/
 .env
 .dev.vars
 npm-debug.log*
+src/generated/helper-scripts.ts

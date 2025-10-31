@@ -3,6 +3,9 @@ main = "src/index.ts"
 compatibility_date = "2024-10-27"
 compatibility_flags = ["nodejs_compat"]
 
+[build]
+command = "npm run build:helpers"
+
 [[kv_namespaces]]
 binding = "MY_KV"
 id = "ce12850a87e743d19fd008a5b32cc336"
