@@ -105,6 +105,29 @@ get "/r2" do |c|
 end
 ```
 
+### HTTP Requests to External Services
+
+The built-in `Http` client lets you call external APIs through Cloudflare Workers’ `fetch`. It exposes synchronous-looking methods inside Ruby while delegating the actual request to TypeScript.
+
+```ruby
+# GET example
+get "/http-get" do |c|
+  response = Http.get("https://jsonplaceholder.typicode.com/todos/1")
+  c.json(body: JSON.parse(response.body), status: response.status)
+end
+
+# POST example
+post "/http-post" do |c|
+  response = Http.post(
+    "https://httpbin.org/post",
+    json: { name: "Ruby Worker", role: "client" },
+  )
+  c.json(body: JSON.parse(response.body)["json"], status: response.status)
+end
+```
+
+See `app/app.rb` or `app/app_all_sample.rb` for additional details.
+
 ---
 
 This README is meant to give you a feel for the template rather than document every detail. Explore the files and sample code to tailor the project to your needs.

@@ -8,8 +8,14 @@ import kvClientScript from "../app/hibana/kv_client.rb"
 import hibanaHelperScript from "../app/helpers/application_helper.rb"
 import d1ClientScript from "../app/hibana/d1_client.rb"
 import r2ClientScript from "../app/hibana/r2_client.rb"
+import httpClientScript from "../app/hibana/http_client.rb"
 import routingScript from "../app/hibana/routing.rb"
 import appScript from "../app/app.rb"
+import {
+  executeHttpFetch,
+  parseHttpRequestPayload,
+  type HttpFetchResponsePayload,
+} from "./http-fetch-utils"
 
 type HostGlobals = typeof globalThis & {
   tsCallBinding?: (
@@ -23,6 +29,7 @@ type HostGlobals = typeof globalThis & {
     bindings: unknown[],
     action: "first" | "all" | "run",
   ) => Promise<string>
+  tsHttpFetch?: (payloadJson: string) => Promise<string>
 }
 
 interface WorkerResponsePayload {
@@ -64,8 +71,9 @@ async function setupRubyVM(env: Env): Promise<RubyVM> {
       await vm.evalAsync(hibanaHelperScript) // 5. ヘルパー
       await vm.evalAsync(d1ClientScript) // 6. D1クライアント
       await vm.evalAsync(r2ClientScript) // 7. R2クライアント
-      await vm.evalAsync(routingScript) // 8. ルーティングDSL
-      await vm.evalAsync(appScript) // 9. ルート定義
+      await vm.evalAsync(httpClientScript) // 8. HTTPクライアント
+      await vm.evalAsync(routingScript) // 9. ルーティングDSL
+      await vm.evalAsync(appScript) // 10. ルート定義
 
       return vm
     })()
@@ -232,12 +240,34 @@ function registerHostFunctions(vm: RubyVM, env: Env): void {
     }
   }
 
+  if (typeof host.tsHttpFetch !== "function") {
+    host.tsHttpFetch = async (payloadJson: string): Promise<string> => {
+      try {
+        const payload = parseHttpRequestPayload(payloadJson)
+        const result = await executeHttpFetch(payload)
+        return JSON.stringify(result)
+      } catch (rawError) {
+        const error = rawError instanceof Error ? rawError : new Error(String(rawError))
+        const fallback: HttpFetchResponsePayload = {
+          ok: false,
+          error: {
+            message: error.message,
+            name: error.name,
+            stack: error.stack,
+          },
+        }
+        return JSON.stringify(fallback)
+      }
+    }
+  }
+
   vm.eval('require "js"')
 
   const HostBridge = vm.eval("HostBridge")
 
   HostBridge.call("ts_call_binding=", vm.wrap(host.tsCallBinding))
   HostBridge.call("ts_run_d1_query=", vm.wrap(host.tsRunD1Query))
+  HostBridge.call("ts_http_fetch=", vm.wrap(host.tsHttpFetch))
 }
 
 function toRubyStringLiteral(value: string): string {

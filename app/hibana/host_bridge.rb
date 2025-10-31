@@ -1,9 +1,9 @@
 module HostBridge
   class << self
-    attr_accessor :ts_call_binding, :ts_run_d1_query
+    attr_accessor :ts_call_binding, :ts_run_d1_query, :ts_http_fetch
 
     def call(binding_name, method_name, *args)
-      ensure_registered!
+      ensure_call_binding_registered!
       ts_call_binding.apply(binding_name.to_s, method_name.to_s, args)
     end
 
@@ -23,9 +23,21 @@ module HostBridge
       ts_run_d1_query.apply(binding_name.to_s, sql, bindings, action).await
     end
 
+    def http_fetch(request_payload)
+      unless ts_http_fetch
+        raise "Host function 'ts_http_fetch' is not registered"
+      end
+      result = ts_http_fetch.apply(request_payload.to_s)
+      if result.respond_to?(:await)
+        result.await
+      else
+        result
+      end
+    end
+
     private
 
-    def ensure_registered!
+    def ensure_call_binding_registered!
       unless ts_call_binding
         raise "Host function 'ts_call_binding' is not registered"
       end

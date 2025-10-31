@@ -83,3 +83,24 @@ get "/r2" do |c|
 
   c.text("Wrote '#{value}' to R2. Read back: '#{read_value}'")
 end
+
+# HTTP GET リクエストのサンプル
+get "/http-get" do |c|
+  response = Http.get("https://jsonplaceholder.typicode.com/todos/1")
+  c.json(
+    status: response.status,
+    body: JSON.parse(response.body),
+  )
+end
+
+# HTTP POST リクエストのサンプル
+post "/http-post" do |c|
+  response = Http.post(
+    "https://httpbin.org/post",
+    json: { name: "Ruby Worker", role: "client" },
+  )
+  c.json(
+    status: response.status,
+    body: JSON.parse(response.body)["json"],
+  )
+end
