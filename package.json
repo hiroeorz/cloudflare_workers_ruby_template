@@ -12,7 +12,9 @@
     "pretest": "npm run build:helpers",
     "test": "npm run test:ts && npm run test:ruby",
     "test:ts": "vitest run",
-    "test:ruby": "ruby -Iapp -Iapp/hibana -Iapp/helpers test/http_client_test.rb"
+    "test:ruby": "ruby -Iapp -Iapp/hibana -Iapp/helpers test/http_client_test.rb",
+    "db:migrate": "wrangler d1 migrations apply wasm-d1-test",
+    "db:migration:new": "wrangler d1 migrations create wasm-d1-test"
   },
   "keywords": [],
   "author": "",

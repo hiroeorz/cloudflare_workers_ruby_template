@@ -2,6 +2,7 @@ name = "wasm-call-ts-sample"
 main = "src/index.ts"
 compatibility_date = "2024-10-27"
 compatibility_flags = ["nodejs_compat"]
+migrations_dir = "migrations"
 
 [build]
 command = "npm run build:helpers"

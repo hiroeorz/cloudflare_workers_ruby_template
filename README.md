@@ -130,9 +130,30 @@ See `app/app.rb` or `app/app_all_sample.rb` for additional details.
 
 ---
 
+## Database Migrations (D1)
+
+First create the database via Wrangler (replace the name if needed):
+
+```bash
+npx wrangler d1 create wasm-d1-test
+```
+
+Migrations live under `migrations/wasm-d1-test/`. Wrangler looks for `migrations/<database_name>/`, so the directory name matches the database registered in `wrangler.toml`.
+
+The starter file `0001_create_posts_table.sql` provisions the sample `posts` table used by `/d1`.
+
+- Not using D1? Simply skip the migration commands or remove the `migrations/` directory.
+
+- Run: `npm run db:migrate`
+- Create new migration: `npm run db:migration:new "add_comments_table"`
+
+Edit the generated SQL and re-run the apply command whenever you need schema changes.
+
+---
+
 ## Helpers
 
-Place Ruby helper files under `app/helpers`. During development and builds, the manifest at `src/generated/helper-scripts.ts` is regenerated automatically, and every helper is evaluated when the Ruby VM boots（ `npx wrangler dev` ）. If you need to refresh the manifest manually, run `npm run build:helpers`.
+Place Ruby helper files under `app/helpers`. During development and builds, the manifest at `src/generated/helper-scripts.ts` is regenerated automatically, and every helper is evaluated when the Ruby VM boots. If you need to refresh the manifest manually, run `npm run build:helpers`.
 
 ---
 

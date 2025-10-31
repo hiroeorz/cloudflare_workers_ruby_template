@@ -131,6 +131,27 @@ end
 
 ---
 
+## D1 マイグレーション
+
+まずは Wrangler でデータベースを作成します（必要に応じて名前を変更してください）。
+
+```bash
+npx wrangler d1 create wasm-d1-test
+```
+
+スキーマは `migrations/wasm-d1-test/` 以下で管理します。`wrangler.toml` の `database_name` と同名のディレクトリを Wrangler が参照する仕組みです。
+
+初期マイグレーション `0001_create_posts_table.sql` では `/d1` ルートで利用する `posts` テーブルを作成します。
+
+- D1 を利用しない場合は、マイグレーションコマンドを実行せず放置するか、`migrations/` ディレクトリを削除しても問題ありません。
+
+- 適用: `npm run db:migrate`
+- 新規作成: `npm run db:migration:new "add_comments_table"`
+
+SQL を編集した後に再度 `npm run db:migrate` を実行すると、Cloudflare D1 に反映されます。
+
+---
+
 ## ヘルパーの自動読み込み
 
 `app/helpers` 配下に Ruby ファイルを置くと、自動生成される `src/generated/helper-scripts.ts` に取り込まれ、Ruby VM 起動時に順番に読み込まれます。
