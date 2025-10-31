@@ -13,7 +13,7 @@ Ruby WASM と Cloudflare のバインディング（KV / D1 / R2 など）を含
     - `npx wrangler dev`
     - ブラウザで `http://127.0.0.1:8787` にアクセスしてルートを確認。
 - ビルド
-    - `npm run build`
+    - `npx wrangler build`
 - Cloudflare Workers へデプロイ
     - `npx wrangler deploy`
 

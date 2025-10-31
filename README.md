@@ -12,7 +12,7 @@ This project is a template for experimenting with a Hono-like Ruby framework run
   - `npx wrangler dev`
   - Visit `http://127.0.0.1:8787` to explore the routes.
 - Build the project.
-  - `npm run build`
+  - `npx wrangler build`
 - Deploy to Cloudflare Workers.
   - `npx wrangler deploy`
 
