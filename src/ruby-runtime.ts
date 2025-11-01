@@ -52,8 +52,8 @@ type WorkersAiPayload = {
   method?: string
   args?: unknown[]
   model?: string
-  input?: unknown
-  options?: unknown
+  payload?: unknown
+  [key: string]: unknown
 }
 
 let rubyVmPromise: Promise<RubyVM> | null = null
@@ -282,9 +282,11 @@ function registerHostFunctions(vm: RubyVM, env: Env): void {
         if (!payload || typeof payload !== "object") {
           throw new Error("Workers AI payload must be an object")
         }
+        const payloadRecord = payload as Record<string, unknown>
+        const bindingValue = payloadRecord["binding"]
         const bindingName =
-          typeof payload.binding === "string" && payload.binding.length > 0
-            ? payload.binding
+          typeof bindingValue === "string" && bindingValue.length > 0
+            ? bindingValue
             : null
         if (!bindingName) {
           throw new Error("Workers AI payload is missing a binding name")
@@ -293,35 +295,42 @@ function registerHostFunctions(vm: RubyVM, env: Env): void {
         if (!target || typeof target !== "object") {
           throw new Error(`Binding '${bindingName}' is not available`)
         }
+        const methodValue = payloadRecord["method"]
         const methodName =
-          typeof payload.method === "string" && payload.method.length > 0
-            ? payload.method
+          typeof methodValue === "string" && methodValue.length > 0
+            ? methodValue
             : "run"
         const methodRef = (target as Record<string, unknown>)[methodName]
         if (typeof methodRef !== "function") {
           throw new Error(`Method '${methodName}' is not available on '${bindingName}'`)
         }
         let args: unknown[]
-        if (Array.isArray(payload.args)) {
-          args = payload.args
+        const argsValue = payloadRecord["args"]
+        if (Array.isArray(argsValue)) {
+          args = argsValue as unknown[]
         } else {
+          const modelValue = payloadRecord["model"]
           const model =
-            typeof payload.model === "string" && payload.model.length > 0
-              ? payload.model
-              : null
-          if (!model) {
-            throw new Error("Workers AI payload requires a model name")
+            typeof modelValue === "string" && modelValue.length > 0
+              ? modelValue
+              : undefined
+          if (methodName === "run") {
+            if (!model) {
+              throw new Error("Workers AI payload requires a model name")
+            }
+            const inputs = ensureRecord(payloadRecord["payload"], "payload")
+            args = [model, inputs]
+          } else if (model !== undefined) {
+            const extraArgs =
+              Object.prototype.hasOwnProperty.call(payloadRecord, "payload")
+                ? [payloadRecord["payload"]]
+                : []
+            args = [model, ...extraArgs]
+          } else if (Object.prototype.hasOwnProperty.call(payloadRecord, "payload")) {
+            args = [payloadRecord["payload"]]
+          } else {
+            args = []
           }
-          const inputs = extractObject(payload.input, "input")
-          const options = extractObject(payload.options, "options")
-          const invocationParams =
-            Object.keys(options).length > 0
-              ? { ...inputs, ...options }
-              : inputs
-          args =
-            Object.keys(invocationParams).length > 0
-              ? [model, invocationParams]
-              : [model]
         }
         const result = await Reflect.apply(methodRef, target, args)
         return JSON.stringify({ ok: true, result })
@@ -350,7 +359,7 @@ function registerHostFunctions(vm: RubyVM, env: Env): void {
   HostBridge.call("ts_workers_ai_invoke=", vm.wrap(host.tsWorkersAiInvoke))
 }
 
-function extractObject(
+function ensureRecord(
   value: unknown,
   label: string,
 ): Record<string, unknown> {
@@ -359,9 +368,6 @@ function extractObject(
   }
   if (typeof value === "object" && value !== null && !Array.isArray(value)) {
     return value as Record<string, unknown>
-  }
-  if (label === "input" && typeof value === "string") {
-    return { prompt: value }
   }
   throw new Error(`Workers AI payload '${label}' must be provided as an object`)
 }

@@ -15,30 +15,33 @@ module WorkersAI
       @binding_name = binding_name.to_s
     end
 
-    def run(model, input:, options: {})
+    def run(model:, payload: {})
       raise ArgumentError, "model is required" if model.nil? || model.to_s.empty?
+      raise ArgumentError, "payload must be a hash" unless payload.is_a?(Hash)
 
-      payload = {
+      request = {
         binding: @binding_name,
         model: model.to_s,
+        payload: stringify_keys(payload),
       }
-      normalized_input = normalize_input(input)
-      payload[:input] = normalized_input if normalized_input
-      normalized_options = normalize_options(options)
-      payload[:options] = normalized_options unless normalized_options.empty?
 
-      dispatch(payload)
+      dispatch(request)
     end
 
-    def generate_text(model:, prompt:, options: {})
-      run(model, input: { prompt: prompt.to_s }, options: options)
+    def generate_text(model:, prompt:)
+      run(
+        model: model,
+        payload: { prompt: prompt.to_s },
+      )
     end
 
     def invoke(payload)
       unless payload.is_a?(Hash)
         raise ArgumentError, "payload must be a hash"
       end
-      dispatch(payload.merge(binding: @binding_name))
+      request = stringify_keys(payload)
+      request["binding"] = @binding_name
+      dispatch(request)
     end
 
     private
@@ -75,26 +78,7 @@ module WorkersAI
       end
     end
 
-    def normalize_input(input)
-      case input
-      when nil
-        {}
-      when String
-        { "prompt" => input }
-      when Hash
-        normalize_hash(input)
-      else
-        raise ArgumentError, "input must be a string or a hash"
-      end
-    end
-
-    def normalize_options(options)
-      return {} unless options.is_a?(Hash)
-
-      normalize_hash(options)
-    end
-
-    def normalize_hash(hash)
+    def stringify_keys(hash)
       hash.each_with_object({}) do |(key, value), acc|
         acc[key.to_s] = value
       end

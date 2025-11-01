@@ -110,18 +110,40 @@ end
 # Workers AI サンプル
 # models: https://developers.cloudflare.com/workers-ai/models/
 #
-get "/ai-demo" do |c|
+
+# llama sample.
+get "/ai-demo-llama" do |c|
   ai = c.env(:AI)
   prompt = "What is Cloudflare Workers AI ?"
   model = "@cf/meta/llama-3-8b-instruct"
-  #model = "@cf/openai/gpt-oss-20b"
 
-  result = ai.generate_text(
+  result = ai.run(
     model: model,
-    prompt: prompt,
-    options: {
+    payload: {
+      prompt: prompt,
       temperature: 0.8,
       max_output_tokens: 30,
+    },
+  )
+  c.json({prompt: prompt, result: result})
+rescue WorkersAI::Error => e
+  c.json({ error: e.message, details: e.details }, status: 500)
+end
+
+# gpt-oss sample
+get "/ai-demo-gpt-oss" do |c|
+  ai = c.env(:AI)
+  prompt = "What is Cloudflare Workers AI ?"
+  model = "@cf/openai/gpt-oss-20b"
+
+  result = ai.run(
+    model: model,
+    payload: {
+      input: prompt,
+      reasoning: {
+        effort: "low",
+        summary: "auto"
+      }
     },
   )
   c.json({prompt: prompt, result: result})
