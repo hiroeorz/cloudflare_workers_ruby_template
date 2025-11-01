@@ -1,6 +1,6 @@
 # Cloudflare Workers Ruby Template
 
-This project is a template for experimenting with a Hono・Sinatra-like Ruby framework running on Cloudflare Workers. It bundles Ruby WASM together with Cloudflare bindings (KV / D1 / R2) so you can explore the stack quickly.
+This project is a template for experimenting with a Hono・Sinatra-like Ruby framework running on Cloudflare Workers. It bundles Ruby WASM together with Cloudflare bindings (KV / D1 / R2 / Workers AI) so you can explore the stack quickly.
 
 ---
 
@@ -102,6 +102,56 @@ get "/r2" do |c|
   read_value = bucket.get(key).text
 
   c.text("Wrote '#{value}' to R2. Read back: '#{read_value}'")
+end
+```
+
+### Workers AI
+
+You can also integrate with Workers AI. Each model expects different payload fields, so adjust the arguments accordingly.
+
+Sample using `@cf/meta/llama-3.1-8b-instruct-fast`:
+
+```ruby
+get "/ai-demo-llama" do |c|
+  ai = c.env(:AI)
+  prompt = "What is Cloudflare Workers AI ?"
+  model = "@cf/meta/llama-3.1-8b-instruct-fast"
+
+  result = ai.run(
+    model: model,
+    payload: {
+      prompt: prompt,
+      temperature: 0.8,
+      max_output_tokens: 30,
+    },
+  )
+  c.json({ prompt: prompt, result: result })
+rescue WorkersAI::Error => e
+  c.json({ error: e.message, details: e.details }, status: 500)
+end
+```
+
+Sample using `@cf/openai/gpt-oss-20b`:
+
+```ruby
+get "/ai-demo-gpt-oss" do |c|
+  ai = c.env(:AI)
+  prompt = "What is Cloudflare Workers AI ?"
+  model = "@cf/openai/gpt-oss-20b"
+
+  result = ai.run(
+    model: model,
+    payload: {
+      input: prompt,
+      reasoning: {
+        effort: "low",
+        summary: "auto",
+      },
+    },
+  )
+  c.json({ prompt: prompt, result: result })
+rescue WorkersAI::Error => e
+  c.json({ error: e.message, details: e.details }, status: 500)
 end
 ```
 
