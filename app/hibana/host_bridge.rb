@@ -1,6 +1,6 @@
 module HostBridge
   class << self
-    attr_accessor :ts_call_binding, :ts_run_d1_query, :ts_http_fetch, :ts_workers_ai_invoke
+    attr_accessor :ts_call_binding, :ts_run_d1_query, :ts_http_fetch, :ts_workers_ai_invoke, :ts_report_ruby_error
 
     def call(binding_name, method_name, *args)
       ensure_call_binding_registered!
@@ -40,6 +40,18 @@ module HostBridge
         raise "Host function 'ts_workers_ai_invoke' is not registered"
       end
       result = ts_workers_ai_invoke.apply(request_payload.to_s)
+      if result.respond_to?(:await)
+        result.await
+      else
+        result
+      end
+    end
+
+    def report_ruby_error(request_payload)
+      unless ts_report_ruby_error
+        raise "Host function 'ts_report_ruby_error' is not registered"
+      end
+      result = ts_report_ruby_error.apply(request_payload.to_s)
       if result.respond_to?(:await)
         result.await
       else

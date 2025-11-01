@@ -32,6 +32,7 @@ type HostGlobals = typeof globalThis & {
   ) => Promise<string>
   tsHttpFetch?: (payloadJson: string) => Promise<string>
   tsWorkersAiInvoke?: (payloadJson: string) => Promise<string>
+  tsReportRubyError?: (payloadJson: string) => Promise<void>
 }
 
 interface WorkerResponsePayload {
@@ -75,19 +76,19 @@ async function setupRubyVM(env: Env): Promise<RubyVM> {
       })
 
       // 順序が重要
-      await vm.evalAsync(hostBridgeScript) // 1. ブリッジ
+      await evalRubyFile(vm, hostBridgeScript, "app/hibana/host_bridge.rb") // 1. ブリッジ
       registerHostFunctions(vm, env) // 2. ブリッジに関数を登録
-      await vm.evalAsync(contextScript) // 3. コンテキスト
-      await vm.evalAsync(kvClientScript) // 4. KVクライアント
-      for (const script of helperScripts) {
-        await vm.evalAsync(script) // 5. app/helpers配下
+      await evalRubyFile(vm, contextScript, "app/hibana/context.rb") // 3. コンテキスト
+      await evalRubyFile(vm, kvClientScript, "app/hibana/kv_client.rb") // 4. KVクライアント
+      for (const helper of helperScripts) {
+        await evalRubyFile(vm, helper.source, helper.filename) // 5. app/helpers配下
       }
-      await vm.evalAsync(d1ClientScript) // 6. D1クライアント
-      await vm.evalAsync(r2ClientScript) // 7. R2クライアント
-      await vm.evalAsync(httpClientScript) // 8. HTTPクライアント
-      await vm.evalAsync(workersAiClientScript) // 9. Workers AIクライアント
-      await vm.evalAsync(routingScript) // 10. ルーティングDSL
-      await vm.evalAsync(appScript) // 11. ルート定義
+      await evalRubyFile(vm, d1ClientScript, "app/hibana/d1_client.rb") // 6. D1クライアント
+      await evalRubyFile(vm, r2ClientScript, "app/hibana/r2_client.rb") // 7. R2クライアント
+      await evalRubyFile(vm, httpClientScript, "app/hibana/http_client.rb") // 8. HTTPクライアント
+      await evalRubyFile(vm, workersAiClientScript, "app/hibana/workers_ai_client.rb") // 9. Workers AIクライアント
+      await evalRubyFile(vm, routingScript, "app/hibana/routing.rb") // 10. ルーティングDSL
+      await evalRubyFile(vm, appScript, "app/app.rb") // 11. ルート定義
 
       return vm
     })()
@@ -349,6 +350,37 @@ function registerHostFunctions(vm: RubyVM, env: Env): void {
     }
   }
 
+  if (typeof host.tsReportRubyError !== "function") {
+    host.tsReportRubyError = async (payloadJson: string): Promise<void> => {
+      try {
+        const payload = JSON.parse(payloadJson) as {
+          message?: string
+          class?: string
+          backtrace?: unknown
+        }
+        const errorClass =
+          typeof payload?.class === "string" && payload.class.length > 0
+            ? payload.class
+            : "Error"
+        const message =
+          typeof payload?.message === "string" ? payload.message : ""
+        const backtrace = Array.isArray(payload?.backtrace)
+          ? payload.backtrace
+          : []
+        const backtraceText =
+          backtrace.length > 0 ? `\n${backtrace.join("\n")}` : ""
+        console.error(`[RubyError] ${errorClass}: ${message}${backtraceText}`)
+      } catch (error) {
+        console.error(
+          "[RubyError] Failed to parse error payload",
+          error,
+          "payload:",
+          payloadJson,
+        )
+      }
+    }
+  }
+
   vm.eval('require "js"')
 
   const HostBridge = vm.eval("HostBridge")
@@ -357,6 +389,7 @@ function registerHostFunctions(vm: RubyVM, env: Env): void {
   HostBridge.call("ts_run_d1_query=", vm.wrap(host.tsRunD1Query))
   HostBridge.call("ts_http_fetch=", vm.wrap(host.tsHttpFetch))
   HostBridge.call("ts_workers_ai_invoke=", vm.wrap(host.tsWorkersAiInvoke))
+  HostBridge.call("ts_report_ruby_error=", vm.wrap(host.tsReportRubyError))
 }
 
 function ensureRecord(
@@ -442,4 +475,23 @@ function contextCall(context: unknown, method: string, arg: unknown): void {
   ) {
     ;(context as { call: (...args: unknown[]) => unknown }).call(method, arg)
   }
+}
+
+async function evalRubyFile(vm: RubyVM, source: string, filename: string): Promise<void> {
+  const wrappedSource = wrapRubySourceForEval(source, filename)
+  await vm.evalAsync(wrappedSource)
+}
+
+function wrapRubySourceForEval(source: string, filename: string): string {
+  const heredocId = createUniqueHeredocId(source)
+  const quotedFilename = JSON.stringify(filename)
+  return `eval(<<'${heredocId}', TOPLEVEL_BINDING, ${quotedFilename}, 1)\n${source}\n${heredocId}\n`
+}
+
+function createUniqueHeredocId(source: string): string {
+  let base = "__CFW_RUBY_SOURCE__"
+  while (source.includes(base)) {
+    base += "_"
+  }
+  return base
 }

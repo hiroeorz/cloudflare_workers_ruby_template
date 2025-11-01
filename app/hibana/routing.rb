@@ -50,4 +50,28 @@ def dispatch(method, path, context)
     end
 
   JSON.generate(response.payload)
+rescue => error
+  report_dispatch_error(error)
+end
+
+def report_dispatch_error(error)
+  payload = {
+    message: error.message,
+    class: error.class.name,
+    backtrace: error.backtrace,
+  }
+
+  begin
+    HostBridge.report_ruby_error(JSON.generate(payload))
+  rescue => report_error
+    warn "Ruby Router: failed to report error - #{report_error.message}"
+  end
+
+  fallback = Response.new(
+    body: "Ruby Router: Internal Server Error",
+    status: 500,
+    headers: { "content-type" => "text/plain; charset=UTF-8" },
+  )
+
+  JSON.generate(fallback.payload)
 end

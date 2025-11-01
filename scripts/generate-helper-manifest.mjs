@@ -18,9 +18,13 @@ async function collectHelperFiles() {
         const relativePath = path
           .relative(generatedDir, absolutePath)
           .replace(/\\/g, "/")
+        const projectRelativePath = path
+          .relative(projectRoot, absolutePath)
+          .replace(/\\/g, "/")
         return {
           filename: entry.name,
           importPath: relativePath.startsWith(".") ? relativePath : `./${relativePath}`,
+          projectRelativePath,
         }
       })
       .sort((a, b) => a.filename.localeCompare(b.filename))
@@ -34,7 +38,10 @@ async function collectHelperFiles() {
 
 function buildFileContents(helperFiles) {
   if (helperFiles.length === 0) {
-    return `export const helperScripts: string[] = []\n`
+    return `export type HelperScript = { filename: string; source: string }
+
+export const helperScripts: HelperScript[] = []
+`
   }
 
   const importLines = helperFiles
@@ -42,12 +49,17 @@ function buildFileContents(helperFiles) {
     .join("\n")
 
   const arrayEntries = helperFiles
-    .map((_file, index) => `  helper${index},`)
+    .map(
+      (file, index) =>
+        `  { filename: "${file.projectRelativePath}", source: helper${index} },`,
+    )
     .join("\n")
 
   return `${importLines}
 
-export const helperScripts: string[] = [
+export type HelperScript = { filename: string; source: string }
+
+export const helperScripts: HelperScript[] = [
 ${arrayEntries}
 ]
 `
