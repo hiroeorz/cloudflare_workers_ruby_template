@@ -8,9 +8,6 @@ WorkersAI.register_binding("AI")
 
 # hello world
 get "/" do |c|
-  puts "hello"
-  p 1
-  raise ArgumentError.new("Error desu")
   c.text("Hello from Ruby WASM")
 end
 
