@@ -1,7 +1,7 @@
 # Cloudflare Workers Ruby テンプレート
 
 このプロジェクトは Cloudflare Workers 上で動作する Hono・Sinatraライクな Ruby フレームワークのテンプレートです。
-Ruby WASM と Cloudflare のバインディング（KV / D1 / R2 など）を含んでいます。
+Ruby WASM と Cloudflare のバインディング（KV / D1 / R2 / Workers AI など）を含んでいます。
 
 ---
 
@@ -105,6 +105,55 @@ get "/r2" do |c|
   c.text("Wrote '#{value}' to R2. Read back: '#{read_value}'")
 end
 ```
+
+### Workers AI
+
+Workers AI との連携もできます。渡すパラメータはモデルによって異なるので注意してください。
+
+LLMに `@cf/meta/llama-3.1-8b-instruct-fast` を使う場合のサンプル。
+```ruby
+get "/ai-demo-llama" do |c|
+  ai = c.env(:AI)
+  prompt = "What is Cloudflare Workers AI ?"
+  model = "@cf/meta/llama-3.1-8b-instruct-fast"
+
+  result = ai.run(
+    model: model,
+    payload: {
+      prompt: prompt,
+      temperature: 0.8,
+      max_output_tokens: 30,
+    },
+  )
+  c.json({prompt: prompt, result: result})
+rescue WorkersAI::Error => e
+  c.json({ error: e.message, details: e.details }, status: 500)
+end
+```
+
+LLMに `gpt-oss-20b` を使う場合のサンプル。
+```ruby
+get "/ai-demo-gpt-oss" do |c|
+  ai = c.env(:AI)
+  prompt = "What is Cloudflare Workers AI ?"
+  model = "@cf/openai/gpt-oss-20b"
+
+  result = ai.run(
+    model: model,
+    payload: {
+      input: prompt,
+      reasoning: {
+        effort: "low",
+        summary: "auto"
+      }
+    },
+  )
+  c.json({prompt: prompt, result: result})
+rescue WorkersAI::Error => e
+  c.json({ error: e.message, details: e.details }, status: 500)
+end
+```
+
 
 ### 外部サービスへの HTTP リクエスト
 

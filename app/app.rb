@@ -115,7 +115,7 @@ end
 get "/ai-demo-llama" do |c|
   ai = c.env(:AI)
   prompt = "What is Cloudflare Workers AI ?"
-  model = "@cf/meta/llama-3-8b-instruct"
+  model = "@cf/meta/llama-3.1-8b-instruct-fast"
 
   result = ai.run(
     model: model,
