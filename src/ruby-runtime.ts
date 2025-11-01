@@ -8,6 +8,7 @@ import kvClientScript from "../app/hibana/kv_client.rb"
 import d1ClientScript from "../app/hibana/d1_client.rb"
 import r2ClientScript from "../app/hibana/r2_client.rb"
 import httpClientScript from "../app/hibana/http_client.rb"
+import workersAiClientScript from "../app/hibana/workers_ai_client.rb"
 import routingScript from "../app/hibana/routing.rb"
 import appScript from "../app/app.rb"
 import {
@@ -30,6 +31,7 @@ type HostGlobals = typeof globalThis & {
     action: "first" | "all" | "run",
   ) => Promise<string>
   tsHttpFetch?: (payloadJson: string) => Promise<string>
+  tsWorkersAiInvoke?: (payloadJson: string) => Promise<string>
 }
 
 interface WorkerResponsePayload {
@@ -43,6 +45,15 @@ type D1PreparedStatement = {
   first: () => Promise<unknown>
   all: () => Promise<{ results: unknown } | unknown>
   run: () => Promise<unknown>
+}
+
+type WorkersAiPayload = {
+  binding: string
+  method?: string
+  args?: unknown[]
+  model?: string
+  input?: unknown
+  options?: unknown
 }
 
 let rubyVmPromise: Promise<RubyVM> | null = null
@@ -74,8 +85,9 @@ async function setupRubyVM(env: Env): Promise<RubyVM> {
       await vm.evalAsync(d1ClientScript) // 6. D1クライアント
       await vm.evalAsync(r2ClientScript) // 7. R2クライアント
       await vm.evalAsync(httpClientScript) // 8. HTTPクライアント
-      await vm.evalAsync(routingScript) // 9. ルーティングDSL
-      await vm.evalAsync(appScript) // 10. ルート定義
+      await vm.evalAsync(workersAiClientScript) // 9. Workers AIクライアント
+      await vm.evalAsync(routingScript) // 10. ルーティングDSL
+      await vm.evalAsync(appScript) // 11. ルート定義
 
       return vm
     })()
@@ -263,6 +275,71 @@ function registerHostFunctions(vm: RubyVM, env: Env): void {
     }
   }
 
+  if (typeof host.tsWorkersAiInvoke !== "function") {
+    host.tsWorkersAiInvoke = async (payloadJson: string): Promise<string> => {
+      try {
+        const payload = JSON.parse(payloadJson) as WorkersAiPayload
+        if (!payload || typeof payload !== "object") {
+          throw new Error("Workers AI payload must be an object")
+        }
+        const bindingName =
+          typeof payload.binding === "string" && payload.binding.length > 0
+            ? payload.binding
+            : null
+        if (!bindingName) {
+          throw new Error("Workers AI payload is missing a binding name")
+        }
+        const target = (env as Record<string, unknown>)[bindingName]
+        if (!target || typeof target !== "object") {
+          throw new Error(`Binding '${bindingName}' is not available`)
+        }
+        const methodName =
+          typeof payload.method === "string" && payload.method.length > 0
+            ? payload.method
+            : "run"
+        const methodRef = (target as Record<string, unknown>)[methodName]
+        if (typeof methodRef !== "function") {
+          throw new Error(`Method '${methodName}' is not available on '${bindingName}'`)
+        }
+        let args: unknown[]
+        if (Array.isArray(payload.args)) {
+          args = payload.args
+        } else {
+          const model =
+            typeof payload.model === "string" && payload.model.length > 0
+              ? payload.model
+              : null
+          if (!model) {
+            throw new Error("Workers AI payload requires a model name")
+          }
+          const inputs = extractObject(payload.input, "input")
+          const options = extractObject(payload.options, "options")
+          const invocationParams =
+            Object.keys(options).length > 0
+              ? { ...inputs, ...options }
+              : inputs
+          args =
+            Object.keys(invocationParams).length > 0
+              ? [model, invocationParams]
+              : [model]
+        }
+        const result = await Reflect.apply(methodRef, target, args)
+        return JSON.stringify({ ok: true, result })
+      } catch (rawError) {
+        const error =
+          rawError instanceof Error ? rawError : new Error(String(rawError))
+        return JSON.stringify({
+          ok: false,
+          error: {
+            message: error.message,
+            name: error.name,
+            stack: error.stack,
+          },
+        })
+      }
+    }
+  }
+
   vm.eval('require "js"')
 
   const HostBridge = vm.eval("HostBridge")
@@ -270,6 +347,23 @@ function registerHostFunctions(vm: RubyVM, env: Env): void {
   HostBridge.call("ts_call_binding=", vm.wrap(host.tsCallBinding))
   HostBridge.call("ts_run_d1_query=", vm.wrap(host.tsRunD1Query))
   HostBridge.call("ts_http_fetch=", vm.wrap(host.tsHttpFetch))
+  HostBridge.call("ts_workers_ai_invoke=", vm.wrap(host.tsWorkersAiInvoke))
+}
+
+function extractObject(
+  value: unknown,
+  label: string,
+): Record<string, unknown> {
+  if (value === undefined || value === null) {
+    return {}
+  }
+  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    return value as Record<string, unknown>
+  }
+  if (label === "input" && typeof value === "string") {
+    return { prompt: value }
+  }
+  throw new Error(`Workers AI payload '${label}' must be provided as an object`)
 }
 
 function toRubyStringLiteral(value: string): string {

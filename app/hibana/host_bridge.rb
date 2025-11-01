@@ -1,6 +1,6 @@
 module HostBridge
   class << self
-    attr_accessor :ts_call_binding, :ts_run_d1_query, :ts_http_fetch
+    attr_accessor :ts_call_binding, :ts_run_d1_query, :ts_http_fetch, :ts_workers_ai_invoke
 
     def call(binding_name, method_name, *args)
       ensure_call_binding_registered!
@@ -28,6 +28,18 @@ module HostBridge
         raise "Host function 'ts_http_fetch' is not registered"
       end
       result = ts_http_fetch.apply(request_payload.to_s)
+      if result.respond_to?(:await)
+        result.await
+      else
+        result
+      end
+    end
+
+    def workers_ai_invoke(request_payload)
+      unless ts_workers_ai_invoke
+        raise "Host function 'ts_workers_ai_invoke' is not registered"
+      end
+      result = ts_workers_ai_invoke.apply(request_payload.to_s)
       if result.respond_to?(:await)
         result.await
       else

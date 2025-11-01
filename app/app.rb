@@ -2,6 +2,7 @@
 R2.register_binding("MY_R2")
 KV.register_binding("MY_KV")
 D1.register_binding("DB")
+WorkersAI.register_binding("AI")
 
 # --- ルート定義 ---
 
@@ -103,4 +104,27 @@ post "/http-post" do |c|
     status: response.status,
     body: JSON.parse(response.body)["json"],
   )
+end
+
+#
+# Workers AI サンプル
+# models: https://developers.cloudflare.com/workers-ai/models/
+#
+get "/ai-demo" do |c|
+  ai = c.env(:AI)
+  prompt = "What is Cloudflare Workers AI ?"
+  model = "@cf/meta/llama-3-8b-instruct"
+  #model = "@cf/openai/gpt-oss-20b"
+
+  result = ai.generate_text(
+    model: model,
+    prompt: prompt,
+    options: {
+      temperature: 0.8,
+      max_output_tokens: 30,
+    },
+  )
+  c.json({prompt: prompt, result: result})
+rescue WorkersAI::Error => e
+  c.json({ error: e.message, details: e.details }, status: 500)
 end

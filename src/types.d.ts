@@ -33,6 +33,11 @@ declare module "../app/hibana/r2_client.rb" {
   export default content
 }
 
+declare module "../app/hibana/workers_ai_client.rb" {
+  const content: string
+  export default content
+}
+
 declare module "../app/hibana/routing.rb" {
   const content: string
   export default content
