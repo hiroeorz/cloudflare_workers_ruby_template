@@ -3,6 +3,8 @@
 このプロジェクトは Cloudflare Workers 上で動作する Hono・Sinatraライクな Ruby フレームワークのテンプレートです。
 Ruby WASM と Cloudflare のバインディング（KV / D1 / R2 / Workers AI など）を含んでいます。
 
+新しいプロジェクトを作成する際は、このリポジトリを直接 clone せずに `npm create hibana@latest <project-name>` を実行してください。
+
 ---
 
 ## はじめ方

@@ -2,6 +2,8 @@
 
 This project is a template for experimenting with a Hono・Sinatra-like Ruby framework running on Cloudflare Workers. It bundles Ruby WASM together with Cloudflare bindings (KV / D1 / R2 / Workers AI) so you can explore the stack quickly.
 
+To scaffold a new project, use `npm create hibana@latest <project-name>` rather than cloning this repository directly.
+
 ---
 
 ## Getting Started
