@@ -80,13 +80,16 @@ async function setupRubyVM(env: Env): Promise<RubyVM> {
       registerHostFunctions(vm, env) // 2. ブリッジに関数を登録
       await evalRubyFile(vm, contextScript, "app/hibana/context.rb") // 3. コンテキスト
       await evalRubyFile(vm, kvClientScript, "app/hibana/kv_client.rb") // 4. KVクライアント
+      await evalRubyFile(vm, d1ClientScript, "app/hibana/d1_client.rb") // 5. D1クライアント
+      await evalRubyFile(vm, r2ClientScript, "app/hibana/r2_client.rb") // 6. R2クライアント
+      await evalRubyFile(vm, httpClientScript, "app/hibana/http_client.rb") // 7. HTTPクライアント
+      await evalRubyFile(vm, workersAiClientScript, "app/hibana/workers_ai_client.rb") // 8. Workers AIクライアント
+
+      // 9. app/heipers 以下のファイルを順次読み込み
       for (const helper of helperScripts) {
         await evalRubyFile(vm, helper.source, helper.filename) // 5. app/helpers配下
       }
-      await evalRubyFile(vm, d1ClientScript, "app/hibana/d1_client.rb") // 6. D1クライアント
-      await evalRubyFile(vm, r2ClientScript, "app/hibana/r2_client.rb") // 7. R2クライアント
-      await evalRubyFile(vm, httpClientScript, "app/hibana/http_client.rb") // 8. HTTPクライアント
-      await evalRubyFile(vm, workersAiClientScript, "app/hibana/workers_ai_client.rb") // 9. Workers AIクライアント
+
       await evalRubyFile(vm, routingScript, "app/hibana/routing.rb") // 10. ルーティングDSL
       await evalRubyFile(vm, appScript, "app/app.rb") // 11. ルート定義
 
