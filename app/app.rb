@@ -8,12 +8,12 @@ WorkersAI.register_binding("AI")
 
 # hello world
 get "/" do |c|
-  c.text("Hello from Ruby WASM")
+  c.text("Hello Hibana! ⚡")
 end
 
 # html sample
 get "/index.html" do |c|
-  c.html("<h1>Hello Cloudflare Workers!</h1>")
+  c.html("<h1>Hello Hibana! ⚡</h1>")
 end
 
 # json sample.
