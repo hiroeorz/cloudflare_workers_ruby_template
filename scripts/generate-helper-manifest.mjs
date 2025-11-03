@@ -42,7 +42,7 @@ function buildFileContents(helperFiles) {
     .join("\n")
 
   const header =
-    'import { setHelperScripts, type HelperScript } from "@hibana/runtime"\n' +
+    'import { setHelperScripts, type HelperScript } from "@hibana-apps/runtime"\n' +
     (importLines ? `${importLines}\n\n` : "\n")
 
   const arrayEntries =

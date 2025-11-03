@@ -28,6 +28,6 @@
     "wrangler": "^4.45.0"
   },
   "dependencies": {
-    "@hibana/runtime": "file:../hibana-runtime-0.1.0.tgz"
+    "@hibana-apps/runtime": "file:../hibana-apps-runtime-0.1.0.tgz"
   }
 }

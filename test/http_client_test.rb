@@ -2,7 +2,7 @@ require "minitest/autorun"
 require "json"
 require "base64"
 
-runtime_dir = File.expand_path("../node_modules/@hibana/runtime/dist/ruby/app/hibana", __dir__)
+runtime_dir = File.expand_path("../node_modules/@hibana-apps/runtime/dist/ruby/app/hibana", __dir__)
 $LOAD_PATH.unshift runtime_dir
 
 require "host_bridge"

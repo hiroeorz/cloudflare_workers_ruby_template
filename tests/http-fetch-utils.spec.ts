@@ -5,7 +5,7 @@ import {
   inferResponseType,
   normalizeHeaders,
   parseHttpRequestPayload,
-} from "@hibana/runtime/http-fetch-utils"
+} from "@hibana-apps/runtime/http-fetch-utils"
 
 describe("parseHttpRequestPayload", () => {
   it("指定したURLとメソッドを正しく設定する", () => {
