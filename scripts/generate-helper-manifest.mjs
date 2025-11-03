@@ -37,31 +37,31 @@ async function collectHelperFiles() {
 }
 
 function buildFileContents(helperFiles) {
-  if (helperFiles.length === 0) {
-    return `export type HelperScript = { filename: string; source: string }
-
-export const helperScripts: HelperScript[] = []
-`
-  }
-
   const importLines = helperFiles
     .map((file, index) => `import helper${index} from "${file.importPath}"`)
     .join("\n")
 
-  const arrayEntries = helperFiles
-    .map(
-      (file, index) =>
-        `  { filename: "${file.projectRelativePath}", source: helper${index} },`,
-    )
-    .join("\n")
+  const header =
+    'import { setHelperScripts, type HelperScript } from "@hibana/runtime"\n' +
+    (importLines ? `${importLines}\n\n` : "\n")
 
-  return `${importLines}
+  const arrayEntries =
+    helperFiles.length === 0
+      ? ""
+      : helperFiles
+          .map(
+            (file, index) =>
+              `  { filename: "${file.projectRelativePath}", source: helper${index} },`,
+          )
+          .join("\n")
 
-export type HelperScript = { filename: string; source: string }
-
-export const helperScripts: HelperScript[] = [
+  return `${header}const helperScripts: HelperScript[] = [
 ${arrayEntries}
 ]
+
+setHelperScripts(helperScripts)
+
+export { helperScripts }
 `
 }
 

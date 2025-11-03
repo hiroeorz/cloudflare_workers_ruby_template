@@ -12,7 +12,7 @@
     "pretest": "npm run build:helpers",
     "test": "npm run test:ts && npm run test:ruby",
     "test:ts": "vitest run",
-    "test:ruby": "ruby -Iapp -Iapp/hibana -Iapp/helpers test/http_client_test.rb",
+    "test:ruby": "ruby -Iapp -Iapp/helpers test/http_client_test.rb",
     "db:migrate": "wrangler d1 migrations apply wasm-d1-test",
     "db:migration:new": "wrangler d1 migrations create wasm-d1-test"
   },
@@ -28,6 +28,6 @@
     "wrangler": "^4.45.0"
   },
   "dependencies": {
-    "@ruby/3.4-wasm-wasi": "file:vendor/ruby/ruby-3.4-wasm-wasi-2.7.2.tgz"
+    "@hibana/runtime": "file:../hibana-runtime-0.1.0.tgz"
   }
 }

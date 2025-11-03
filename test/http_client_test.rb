@@ -2,13 +2,12 @@ require "minitest/autorun"
 require "json"
 require "base64"
 
-$LOAD_PATH.unshift File.expand_path("../app", __dir__)
-$LOAD_PATH.unshift File.expand_path("../app/hibana", __dir__)
-$LOAD_PATH.unshift File.expand_path("../app/helpers", __dir__)
+runtime_dir = File.expand_path("../node_modules/@hibana/runtime/dist/ruby/app/hibana", __dir__)
+$LOAD_PATH.unshift runtime_dir
 
-require_relative "../app/hibana/host_bridge"
-require_relative "../app/hibana/context"
-require_relative "../app/hibana/http_client"
+require "host_bridge"
+require "context"
+require "http_client"
 
 class HttpFetchStub
   attr_accessor :response_json

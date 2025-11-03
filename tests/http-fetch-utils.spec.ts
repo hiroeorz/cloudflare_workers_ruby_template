@@ -5,7 +5,7 @@ import {
   inferResponseType,
   normalizeHeaders,
   parseHttpRequestPayload,
-} from "../src/http-fetch-utils"
+} from "@hibana/runtime/http-fetch-utils"
 
 describe("parseHttpRequestPayload", () => {
   it("指定したURLとメソッドを正しく設定する", () => {
@@ -25,9 +25,8 @@ describe("parseHttpRequestPayload", () => {
   })
 
   it("URLが欠落している場合は例外を発生させる", () => {
-    expect(() => parseHttpRequestPayload("{}")).toThrowError(
-      /HTTP request payload must include url/,
-    )
+    expect(() => parseHttpRequestPayload("{}"))
+      .toThrowError(/HTTP request payload must include url/)
   })
 })
 
@@ -133,7 +132,10 @@ describe("executeHttpFetch", () => {
   })
 
   it("例外発生時にエラーレスポンスを返す", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => Promise.reject(new Error("network failure"))))
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Promise.reject(new Error("network failure"))),
+    )
 
     const result = await executeHttpFetch({
       url: "https://example.com/error",
