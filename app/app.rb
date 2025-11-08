@@ -6,9 +6,14 @@ WorkersAI.register_binding("AI")
 
 # --- ルート定義 ---
 
-# hello world (render templates/index.html.erb)
+# Redirect to /index.html
 get "/" do |c|
-  c.render("index", name: "Hibana", age: 50)
+  c.redirect("/index.html")
+end
+
+# hello world
+get "/hello" do |c|
+  c.text("Hello from Ruby Hibana ⚡")
 end
 
 # html sample

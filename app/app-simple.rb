@@ -1,5 +1,10 @@
-# hello world
+# Redirect to /index.html
 get "/" do |c|
+  c.redirect("/index.html")
+end
+
+# hello world
+get "/hello" do |c|
   c.text("Hello from Ruby WASM")
 end
 
