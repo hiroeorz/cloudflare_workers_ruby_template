@@ -40,6 +40,13 @@
         <article>
           <h3>Cloudflare bindings</h3>
           <p>Workers KV / D1 / R2 / Workers AI を Ruby から呼び出せるクライアントを標準でバンドルしています。</p>
+          <pre class="snippet"><code><span class="kw">get</span> <span class="str">"/d1"</span> <span class="do">do</span> |c|
+  db = c.env(:DB)
+  result = db.prepare(<span class="str">"SELECT * FROM posts"</span>)
+              .bind
+              .first
+  c.json(result)
+<span class="kw">end</span></code></pre>
         </article>
         <article>
           <h3>Seamless asset pipeline</h3>
