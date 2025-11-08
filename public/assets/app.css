@@ -131,12 +131,12 @@ main {
 
 .snippet {
   margin-top: 1rem;
-  padding: 0.85rem 1rem;
+  padding: 0.95rem 1.15rem;
   border-radius: 0.75rem;
   background: #0f172a;
   color: #e2e8f0;
   font-family: "Fira Code", Consolas, monospace;
-  font-size: 0.85rem;
+  font-size: 1.2rem;
   overflow-x: auto;
 }
 
@@ -146,11 +146,15 @@ main {
 }
 
 .snippet .kw {
-  color: #f472b6;
+  color: #3b82f6;
 }
 
 .snippet .str {
-  color: #dc2626;
+  color: #06b6d4;
+}
+
+.snippet .do {
+  color: #f97316;
 }
 
 footer {
