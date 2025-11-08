@@ -192,4 +192,12 @@ code {
   padding: 0.15rem 0.4rem;
   border-radius: 0.35rem;
   font-size: 0.85em;
+  color: #f8fafc;
+}
+
+code.inline {
+  display: inline-block;
+  background: rgba(15, 23, 42, 0.15);
+  color: #0f172a;
+}
 }

@@ -21,7 +21,7 @@
         <p class="description">
           Hibana は Cloudflare Workers 上で Ruby を快適に動かすための CLI & ランタイムです。
           Hono / Sinatra スタイルの DSL・Cloudflare 向けクライアント・テンプレート/静的アセット機構を備え、
-          ローカルで `npm create hibana@latest` を実行するだけで即座に開発を始められます。
+          ローカルで <code class="inline">npm create hibana@latest</code> を実行するだけで即座に開発を始められます。
         </p>
         <div class="actions">
           <a class="button primary" href="/">See sample route</a>
@@ -33,7 +33,7 @@
         <article class="feature">
           <div class="feature-text">
             <h3>Ruby-friendly DSL</h3>
-            <p>Hono / Sinatra に似た DSL でルーティングを記述。`c.text`, `c.json`, `c.render` など直感的な API を提供します。</p>
+            <p>Hono / Sinatra に似た DSL でルーティングを記述。<code class="inline">c.text</code>、<code class="inline">c.json</code>、<code class="inline">c.render</code> など直感的な API を提供します。</p>
           </div>
           <pre class="snippet"><code><span class="kw">get</span> <span class="str">"/"</span> <span class="do">do</span> |c|
   c.text(<span class="str">"Hello Hibana!"</span>)
@@ -69,7 +69,7 @@
         <article class="feature">
           <div class="feature-text">
             <h3>Seamless asset pipeline</h3>
-            <p>ERB テンプレートと静的ファイルを manifest 化し、Workers へそのまま配信。`npm run build:generated` だけで完結します。</p>
+            <p>ERB テンプレートと静的ファイルを manifest 化し、Workers へそのまま配信。<code class="inline">npm run build:generated</code> だけで完結します。</p>
           </div>
           <pre class="snippet"><code>&lt;h1&gt;My name is <span class="erb">&lt;%= name %&gt;</span>&lt;/h1&gt;
 &lt;p&gt;Nickname is <span class="erb">&lt;%= nickname %&gt;</span>&lt;/p&gt;</code></pre>
