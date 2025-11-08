@@ -3,12 +3,50 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Hibana Static Page</title>
+    <title>Hibana Static Assets</title>
     <link rel="stylesheet" href="/assets/app.css" />
   </head>
   <body>
-    <h1>Hibana Static Assets</h1>
-    <p>このHTMLは <code>public/index.html</code> から直接配信されています。</p>
-    <img src="/assets/logo.svg" alt="Logo" width="120" />
+    <div class="glow"></div>
+    <header>
+      <img src="/assets/logo.svg" alt="Hibana Logo" />
+      <span>Hibana</span>
+    </header>
+    <main>
+      <section class="hero">
+        <p class="eyebrow">Cloudflare Workers × Ruby</p>
+        <h1>
+          Hibana ignites your
+          <span class="highlight">Ruby</span> apps at the edge
+        </h1>
+        <p class="description">
+          Hibana は Cloudflare Workers 上で Ruby を快適に動かすための CLI & ランタイムです。
+          Hono / Sinatra スタイルの DSL・Cloudflare 向けクライアント・テンプレート/静的アセット機構を備え、
+          ローカルで `npm create hibana@latest` を実行するだけで即座に開発を始められます。
+        </p>
+        <div class="actions">
+          <a class="button primary" href="/">See sample route</a>
+          <a class="button ghost" href="https://github.com/hiroeorz/cloudflare_workers_ruby_template" target="_blank" rel="noreferrer">View source</a>
+        </div>
+      </section>
+
+      <section class="grid">
+        <article>
+          <h3>Ruby-friendly DSL</h3>
+          <p>Hono / Sinatra に似た DSL でルーティングを記述。`c.text`, `c.json`, `c.render` など直感的な API を提供します。</p>
+        </article>
+        <article>
+          <h3>Cloudflare bindings</h3>
+          <p>Workers KV / D1 / R2 / Workers AI を Ruby から呼び出せるクライアントを標準でバンドルしています。</p>
+        </article>
+        <article>
+          <h3>Seamless asset pipeline</h3>
+          <p>ERB テンプレートと静的ファイルを manifest 化し、Workers へそのまま配信。`npm run build:generated` だけで完結します。</p>
+        </article>
+      </section>
+    </main>
+    <footer>
+      <small>Built with Hibana · Cloudflare Workers + Ruby runtime</small>
+    </footer>
   </body>
 </html>
