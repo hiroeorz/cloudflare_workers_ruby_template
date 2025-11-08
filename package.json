@@ -5,11 +5,13 @@
   "main": "index.js",
   "scripts": {
     "build:helpers": "node scripts/generate-helper-manifest.mjs",
-    "predev": "npm run build:helpers",
+    "build:templates": "node scripts/generate-template-manifest.mjs",
+    "build:generated": "npm run build:helpers && npm run build:templates",
+    "predev": "npm run build:generated",
     "dev": "wrangler dev",
-    "predeploy": "npm run build:helpers",
+    "predeploy": "npm run build:generated",
     "deploy": "wrangler deploy",
-    "pretest": "npm run build:helpers",
+    "pretest": "npm run build:generated",
     "test": "npm run test:ts && npm run test:ruby",
     "test:ts": "vitest run",
     "test:ruby": "ruby -Iapp -Iapp/helpers test/http_client_test.rb",
@@ -28,6 +30,6 @@
     "wrangler": "^4.45.0"
   },
   "dependencies": {
-    "@hibana-apps/runtime": "file:../hibana-apps-runtime-0.1.0.tgz"
+    "@hibana-apps/runtime": "file:../hibana/packages/runtime"
   }
 }

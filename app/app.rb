@@ -6,9 +6,9 @@ WorkersAI.register_binding("AI")
 
 # --- ルート定義 ---
 
-# hello world
+# hello world (render templates/index.html.erb)
 get "/" do |c|
-  c.text("Hello Hibana! ⚡")
+  c.render("index", name: "Hibana", age: 50)
 end
 
 # html sample

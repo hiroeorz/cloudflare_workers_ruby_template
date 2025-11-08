@@ -63,6 +63,31 @@ post "/echo" do |c|
 end
 ```
 
+### Template Rendering (ERB)
+
+Place your ERB files under the `templates/` directory. Layouts live under `templates/layouts/` and automatically wrap `c.render` responses (default: `layouts/application.html.erb`).
+
+```
+templates/
+  index.html.erb
+  layouts/
+    application.html.erb
+```
+
+Render a template from any route:
+
+```ruby
+get "/" do |c|
+  c.render("index", name: "Hibana", age: 50)
+end
+```
+
+- Omit the extension and Hibana will look for `.html.erb` (falling back to `.erb`).
+- Pass `layout: false` to skip the default layout, or `layout: "layouts/marketing"` to choose another file.
+- `render_to_string("users/show", locals: { name: "Hiroe" })` is available when you need the HTML without returning a response immediately.
+
+`npm run build:generated` (automatically executed before `dev`, `deploy`, and `test`) keeps `src/generated/template-assets.ts` in sync with your ERB files so Wrangler bundles them.
+
 ## Cloudflare Bindings
 
 The template ships with sample integrations for Cloudflare KV, D1, and R2—just reference the binding name to call them from Ruby.

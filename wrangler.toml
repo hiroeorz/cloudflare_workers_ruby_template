@@ -5,7 +5,7 @@ compatibility_flags = ["nodejs_compat"]
 migrations_dir = "migrations"
 
 [build]
-command = "npm run build:helpers"
+command = "npm run build:generated"
 
 [[kv_namespaces]]
 binding = "MY_KV"
@@ -28,4 +28,9 @@ remote = true
 [[rules]]
 type = "Text"
 globs = ["**/*.rb"]
+fallthrough = true
+
+[[rules]]
+type = "Text"
+globs = ["**/*.erb"]
 fallthrough = true
