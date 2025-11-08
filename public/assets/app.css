@@ -88,9 +88,9 @@ main {
 }
 
 .button.primary {
-  background: linear-gradient(120deg, #6366f1, #ec4899);
+  background: linear-gradient(120deg, #f97316, #f97316);
   color: white;
-  box-shadow: 0 20px 40px rgba(236, 72, 153, 0.25);
+  box-shadow: 0 20px 40px rgba(249, 115, 22, 0.25);
 }
 
 .button.ghost {
