@@ -1,6 +1,6 @@
 # Cloudflare Workers Ruby テンプレート
 
-このプロジェクトは Cloudflare Workers 上で動作する Hono・Sinatraライクな Ruby フレームワークのテンプレートです。
+このプロジェクトは Cloudflare Workers 上で動作する Hono・Sinatra ライクな Ruby フレームワークのテンプレートです。
 Ruby WASM と Cloudflare のバインディング（KV / D1 / R2 / Workers AI など）を含んでいます。
 
 新しいプロジェクトを作成する際は、このリポジトリを直接 clone せずに `npm create hibana@latest <project-name>` を実行してください。
@@ -10,14 +10,14 @@ Ruby WASM と Cloudflare のバインディング（KV / D1 / R2 / Workers AI �
 ## はじめ方
 
 - 依存関係をセットアップ・
-    - `npm install`
+  - `npm install`
 - ローカル開発サーバを起動します。
-    - `npx wrangler dev`
-    - ブラウザで `http://127.0.0.1:8787` にアクセスしてルートを確認。
+  - `npx wrangler dev`
+  - ブラウザで `http://127.0.0.1:8787` にアクセスしてルートを確認。
 - ビルド
-    - `npx wrangler build`
+  - `npx wrangler build`
 - Cloudflare Workers へデプロイ
-    - `npx wrangler deploy`
+  - `npx wrangler deploy`
 
 ## ルーティングとアプリケーションロジックの実装
 
@@ -34,11 +34,11 @@ end
 HTML や JSON を返すルートも同様の感覚で書けます。
 
 ```ruby
-get "/index.html" do |c|
+get "/sample.html" do |c|
   c.html("<h1>Hello Cloudflare Workers!</h1>")
 end
 
-get "/index.js" do |c|
+get "/sample.js" do |c|
   c.json({ name: "Hiroe", age: 50 })
 end
 ```
@@ -112,7 +112,8 @@ end
 
 Workers AI との連携もできます。渡すパラメータはモデルによって異なるので注意してください。
 
-LLMに `@cf/meta/llama-3.1-8b-instruct-fast` を使う場合のサンプル。
+LLM に `@cf/meta/llama-3.1-8b-instruct-fast` を使う場合のサンプル。
+
 ```ruby
 get "/ai-demo-llama" do |c|
   ai = c.env(:AI)
@@ -133,7 +134,8 @@ rescue WorkersAI::Error => e
 end
 ```
 
-LLMに `gpt-oss-20b` を使う場合のサンプル。
+LLM に `gpt-oss-20b` を使う場合のサンプル。
+
 ```ruby
 get "/ai-demo-gpt-oss" do |c|
   ai = c.env(:AI)
@@ -156,10 +158,9 @@ rescue WorkersAI::Error => e
 end
 ```
 
-
 ### 外部サービスへの HTTP リクエスト
 
-組み込みの `Http` クライアントを使うと、Cloudflare Workers 側の `fetch` を経由して外部APIにアクセスできます。Ruby からは同期的に見えるAPIで、内部的に TypeScript に委譲しています。
+組み込みの `Http` クライアントを使うと、Cloudflare Workers 側の `fetch` を経由して外部 API にアクセスできます。Ruby からは同期的に見える API で、内部的に TypeScript に委譲しています。
 
 ```ruby
 # GET のサンプル

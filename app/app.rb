@@ -12,12 +12,12 @@ get "/" do |c|
 end
 
 # html sample
-get "/index.html" do |c|
+get "/sample.html" do |c|
   c.html("<h1>Hello Hibana! ⚡</h1>")
 end
 
 # json sample.
-get  "/index.js" do |c|
+get  "/sample.js" do |c|
   c.json({name: "Hiroe", age: 50})
 end
 

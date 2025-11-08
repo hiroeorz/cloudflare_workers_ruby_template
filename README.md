@@ -33,11 +33,11 @@ end
 Returning HTML or JSON is just as straightforward:
 
 ```ruby
-get "/index.html" do |c|
+get "/sample.html" do |c|
   c.html("<h1>Hello Cloudflare Workers!</h1>")
 end
 
-get "/index.js" do |c|
+get "/sample.js" do |c|
   c.json({ name: "Hiroe", age: 50 })
 end
 ```

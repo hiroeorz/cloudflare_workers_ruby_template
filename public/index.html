@@ -29,17 +29,21 @@
         </div>
       </section>
 
-      <section class="grid">
-        <article>
-          <h3>Ruby-friendly DSL</h3>
-          <p>Hono / Sinatra に似た DSL でルーティングを記述。`c.text`, `c.json`, `c.render` など直感的な API を提供します。</p>
+      <section class="feature-stack">
+        <article class="feature">
+          <div class="feature-text">
+            <h3>Ruby-friendly DSL</h3>
+            <p>Hono / Sinatra に似た DSL でルーティングを記述。`c.text`, `c.json`, `c.render` など直感的な API を提供します。</p>
+          </div>
           <pre class="snippet"><code><span class="kw">get</span> <span class="str">"/"</span> <span class="do">do</span> |c|
   c.text(<span class="str">"Hello Hibana!"</span>)
 <span class="kw">end</span></code></pre>
         </article>
-        <article>
-          <h3>Cloudflare bindings</h3>
-          <p>Workers KV / D1 / R2 / Workers AI を Ruby から呼び出せるクライアントを標準でバンドルしています。</p>
+        <article class="feature">
+          <div class="feature-text">
+            <h3>Cloudflare bindings</h3>
+            <p>Workers KV / D1 / R2 / Workers AI を Ruby から呼び出せるクライアントを標準でバンドルしています。</p>
+          </div>
           <pre class="snippet"><code><span class="kw">get</span> <span class="str">"/d1"</span> <span class="do">do</span> |c|
   db = c.env(:DB)
   result = db.prepare(<span class="str">"SELECT * FROM posts"</span>)
@@ -48,9 +52,25 @@
   c.json(result)
 <span class="kw">end</span></code></pre>
         </article>
-        <article>
-          <h3>Seamless asset pipeline</h3>
-          <p>ERB テンプレートと静的ファイルを manifest 化し、Workers へそのまま配信。`npm run build:generated` だけで完結します。</p>
+        <article class="feature">
+          <div class="feature-text">
+            <h3>Workers AI ready</h3>
+            <p>Workers AI バインディングを Ruby から直接呼び出せます。プロンプトや payload を Ruby のハッシュで表現し、そのままモデルへ渡せます。</p>
+          </div>
+          <pre class="snippet"><code><span class="kw">get</span> <span class="str">"/ai-demo"</span> <span class="do">do</span> |c|
+  ai = c.env(:AI)
+  result = ai.run(
+    model: <span class="str">"@cf/meta/llama-3.1-8b"</span>,
+    payload: { prompt: <span class="str">"Hello from Hibana"</span> },
+  )
+  c.json(result)
+<span class="kw">end</span></code></pre>
+        </article>
+        <article class="feature">
+          <div class="feature-text">
+            <h3>Seamless asset pipeline</h3>
+            <p>ERB テンプレートと静的ファイルを manifest 化し、Workers へそのまま配信。`npm run build:generated` だけで完結します。</p>
+          </div>
           <pre class="snippet"><code>&lt;h1&gt;My name is <span class="erb">&lt;%= name %&gt;</span>&lt;/h1&gt;
 &lt;p&gt;Nickname is <span class="erb">&lt;%= nickname %&gt;</span>&lt;/p&gt;</code></pre>
         </article>
