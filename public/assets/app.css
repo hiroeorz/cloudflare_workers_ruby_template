@@ -157,6 +157,10 @@ main {
   color: #f97316;
 }
 
+.snippet .erb {
+  color: #ea580c;
+}
+
 footer {
   padding: 1.5rem;
   text-align: center;

@@ -51,8 +51,8 @@
         <article>
           <h3>Seamless asset pipeline</h3>
           <p>ERB テンプレートと静的ファイルを manifest 化し、Workers へそのまま配信。`npm run build:generated` だけで完結します。</p>
-          <pre class="snippet"><code>&lt;link rel=<span class="str">"stylesheet"</span> href=<span class="str">"/assets/app.css"</span> /&gt;
-&lt;img src=<span class="str">"/assets/logo.svg"</span> alt=<span class="str">"Hibana"</span> /&gt;</code></pre>
+          <pre class="snippet"><code>&lt;h1&gt;My name is <span class="erb">&lt;%= name %&gt;</span>&lt;/h1&gt;
+&lt;p&gt;Nickname is <span class="erb">&lt;%= nickname %&gt;</span>&lt;/p&gt;</code></pre>
         </article>
       </section>
     </main>
