@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -19,9 +19,9 @@
           <span class="accent ruby">Ruby</span> apps at the edge
         </h1>
         <p class="description">
-          Hibana は Cloudflare Workers 上で Ruby を快適に動かすための CLI & ランタイムです。
-          Hono / Sinatra スタイルの DSL・Cloudflare 向けクライアント・テンプレート/静的アセット機構を備え、
-          ローカルで <code class="inline">npm create hibana@latest</code> を実行するだけで即座に開発を始められます。
+          Hibana is a CLI + runtime that makes Ruby feel at home on Cloudflare Workers.
+          It ships a Hono / Sinatra style DSL, Cloudflare bindings, templates, and a static asset pipeline.
+          Run <code class="inline">npm create hibana@latest</code> locally to start in seconds.
         </p>
         <div class="actions">
           <a class="button primary" href="/">See sample route</a>
@@ -33,7 +33,7 @@
         <article class="feature">
           <div class="feature-text">
             <h3>Ruby-friendly DSL</h3>
-            <p>Hono / Sinatra に似た DSL でルーティングを記述。<code class="inline">c.text</code>、<code class="inline">c.json</code>、<code class="inline">c.render</code> など直感的な API を提供します。</p>
+            <p>Define routes with a Hono / Sinatra-like DSL. Helpers such as <code class="inline">c.text</code>, <code class="inline">c.json</code>, and <code class="inline">c.render</code> keep handlers clear and expressive.</p>
           </div>
           <pre class="snippet"><code><span class="kw">get</span> <span class="str">"/"</span> <span class="do">do</span> |c|
   c.text(<span class="str">"Hello Hibana!"</span>)
@@ -42,7 +42,7 @@
         <article class="feature">
           <div class="feature-text">
             <h3>Cloudflare bindings</h3>
-            <p>Workers KV / D1 / R2 / Workers AI を Ruby から呼び出せるクライアントを標準でバンドルしています。</p>
+            <p>Workers KV / D1 / R2 / Workers AI clients ship out of the box, so Ruby code can talk to every binding with plain objects.</p>
           </div>
           <pre class="snippet"><code><span class="kw">get</span> <span class="str">"/d1"</span> <span class="do">do</span> |c|
   db = c.env(:DB)
@@ -55,7 +55,7 @@
         <article class="feature">
           <div class="feature-text">
             <h3>Workers AI ready</h3>
-            <p>Workers AI バインディングを Ruby から直接呼び出せます。プロンプトや payload を Ruby のハッシュで表現し、そのままモデルへ渡せます。</p>
+            <p>Call Workers AI directly from Ruby. Describe prompts and payloads with hashes, then send them straight to the model.</p>
           </div>
           <pre class="snippet"><code><span class="kw">get</span> <span class="str">"/ai-demo"</span> <span class="do">do</span> |c|
   ai = c.env(:AI)
@@ -69,7 +69,7 @@
         <article class="feature">
           <div class="feature-text">
             <h3>Seamless asset pipeline</h3>
-            <p>ERB テンプレートと静的ファイルを manifest 化し、Workers へそのまま配信。<code class="inline">npm run build:generated</code> だけで完結します。</p>
+            <p>ERB templates and static files are turned into manifests and streamed to Workers. Run <code class="inline">npm run build:generated</code> before dev/build/deploy and you are done.</p>
           </div>
           <pre class="snippet"><code>&lt;h1&gt;My name is <span class="erb">&lt;%= name %&gt;</span>&lt;/h1&gt;
 &lt;p&gt;Nickname is <span class="erb">&lt;%= nickname %&gt;</span>&lt;/p&gt;</code></pre>
