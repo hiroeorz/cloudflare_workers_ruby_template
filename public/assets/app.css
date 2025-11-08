@@ -129,6 +129,30 @@ main {
   line-height: 1.6;
 }
 
+.snippet {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.75rem;
+  background: #0f172a;
+  color: #e2e8f0;
+  font-family: "Fira Code", Consolas, monospace;
+  font-size: 0.85rem;
+  overflow-x: auto;
+}
+
+.snippet code {
+  display: block;
+  white-space: pre;
+}
+
+.snippet .kw {
+  color: #f472b6;
+}
+
+.snippet .str {
+  color: #dc2626;
+}
+
 footer {
   padding: 1.5rem;
   text-align: center;
