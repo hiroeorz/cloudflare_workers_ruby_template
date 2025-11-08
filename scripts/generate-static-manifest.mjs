@@ -60,8 +60,9 @@ async function collectAssets(dir = publicDir, list = []) {
 
     const relativePath = path.relative(projectRoot, absolutePath).replace(/\\/g, "/")
     const body = await fs.readFile(absolutePath, "utf-8")
+    const servePath = path.relative(publicDir, absolutePath).replace(/\\/g, "/")
     list.push({
-      filename: relativePath,
+      filename: servePath,
       body,
       contentType: guessContentType(relativePath),
     })
