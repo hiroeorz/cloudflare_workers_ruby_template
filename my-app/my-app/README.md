@@ -88,24 +88,6 @@ end
 
 `npm run build:generated` (automatically executed before `dev`, `deploy`, and `test`) keeps `src/generated/template-assets.ts` in sync with your ERB files so Wrangler bundles them.
 
-### Serving Static Assets
-
-Place files that should be served as-is under the `public/` directory. Any request that doesn’t match a Ruby route falls back to the static registry and returns the asset with an appropriate `Content-Type`.
-
-```
-public/
-  index.html
-  assets/
-    app.css
-    logo.svg
-```
-
-- `/public/index.html` → `GET /index.html`
-- `/public/assets/logo.svg` → `GET /assets/logo.svg`
-- `npm run build:generated` also regenerates `src/generated/static-assets.ts`, so static files are bundled automatically before dev/build/deploy/test.
-
-Static files coexist with ERB templates—use templates for dynamic HTML (`c.render`) and `public/` for CSS, JS, images, or raw HTML pages.
-
 ## Cloudflare Bindings
 
 The template ships with sample integrations for Cloudflare KV, D1, and R2—just reference the binding name to call them from Ruby.

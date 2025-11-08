@@ -34,8 +34,3 @@ fallthrough = true
 type = "Text"
 globs = [ "**/*.erb" ]
 fallthrough = true
-
-[[rules]]
-type = "Text"
-globs = [ "public/**/*" ]
-fallthrough = true

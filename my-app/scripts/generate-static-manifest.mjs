@@ -59,10 +59,10 @@ async function collectAssets(dir = publicDir, list = []) {
     }
 
     const relativePath = path.relative(projectRoot, absolutePath).replace(/\\/g, "/")
-    const body = await fs.readFile(absolutePath, "utf-8")
+    const importPath = path.relative(generatedDir, absolutePath).replace(/\\/g, "/")
     list.push({
       filename: relativePath,
-      body,
+      importPath: importPath.startsWith(".") ? importPath : `./${importPath}`,
       contentType: guessContentType(relativePath),
     })
   }
@@ -72,19 +72,23 @@ async function collectAssets(dir = publicDir, list = []) {
 
 function buildFileContents(assets) {
   const sorted = assets.sort((a, b) => a.filename.localeCompare(b.filename))
+  const imports = sorted
+    .map((asset, index) => `import asset${index} from "${asset.importPath}"`)
+    .join("\n")
+
   const header =
-    'import { setStaticAssets, type StaticAsset } from "@hibana-apps/runtime"\n\n'
+    'import { setStaticAssets, type StaticAsset } from "@hibana-apps/runtime"\n' +
+    (imports ? `${imports}\n\n` : "\n")
 
   const entries =
     sorted.length === 0
       ? ""
       : sorted
-          .map((asset) => {
+          .map((asset, index) => {
             const typeLine = asset.contentType
               ? `, contentType: "${asset.contentType}"`
               : ""
-            const bodyLiteral = JSON.stringify(asset.body)
-            return `  { filename: "${asset.filename}", body: ${bodyLiteral}${typeLine} },`
+            return `  { filename: "${asset.filename}", body: asset${index}${typeLine} },`
           })
           .join("\n")
 
