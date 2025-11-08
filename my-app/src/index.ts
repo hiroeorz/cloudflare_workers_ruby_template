@@ -7,7 +7,6 @@ import {
 import appMain from "../app/app.rb"
 import "./generated/helper-scripts"
 import "./generated/template-assets"
-import "./generated/static-assets"
 
 setApplicationScripts([
   { filename: "app/app.rb", source: appMain },

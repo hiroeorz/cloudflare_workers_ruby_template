@@ -1,13 +1,12 @@
 {
-  "name": "cloudflare_workers_ruby_template",
+  "name": "my-app",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "build:helpers": "node scripts/generate-helper-manifest.mjs",
     "build:templates": "node scripts/generate-template-manifest.mjs",
-    "build:static": "node scripts/generate-static-manifest.mjs",
-    "build:generated": "npm run build:helpers && npm run build:templates && npm run build:static",
+    "build:generated": "npm run build:helpers && npm run build:templates",
     "predev": "npm run build:generated",
     "dev": "wrangler dev",
     "predeploy": "npm run build:generated",
@@ -31,6 +30,6 @@
     "wrangler": "^4.45.0"
   },
   "dependencies": {
-    "@hibana-apps/runtime": "file:../hibana/packages/runtime"
+    "@hibana-apps/runtime": "^0.1.1"
   }
 }

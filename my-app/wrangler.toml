@@ -1,7 +1,7 @@
-name = "wasm-call-ts-sample"
+name = "my-app"
 main = "src/index.ts"
 compatibility_date = "2024-10-27"
-compatibility_flags = ["nodejs_compat"]
+compatibility_flags = [ "nodejs_compat" ]
 migrations_dir = "migrations"
 
 [build]
@@ -12,7 +12,7 @@ binding = "MY_KV"
 id = "ce12850a87e743d19fd008a5b32cc336"
 
 [[d1_databases]]
-binding = "DB" # Ruby/JSからアクセスしやすいようにbinding名をDBに変更します
+binding = "DB"
 database_name = "wasm-d1-test"
 database_id = "5f755bff-6d38-4575-8ef5-6a0ed4861503"
 
@@ -27,15 +27,10 @@ remote = true
 
 [[rules]]
 type = "Text"
-globs = ["**/*.rb"]
+globs = [ "**/*.rb" ]
 fallthrough = true
 
 [[rules]]
 type = "Text"
-globs = ["**/*.erb"]
-fallthrough = true
-
-[[rules]]
-type = "Text"
-globs = ["public/**/*"]
+globs = [ "**/*.erb" ]
 fallthrough = true
