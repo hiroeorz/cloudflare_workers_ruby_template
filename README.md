@@ -200,6 +200,33 @@ rescue WorkersAI::Error => e
 end
 ```
 
+### Scheduled Cron Events
+
+Configure cron schedules in `wrangler.toml`, then register Ruby handlers with the `cron` DSL. Wrangler controls when the events fire; Ruby only decides what to do when each event arrives.
+
+`wrangler.toml`
+
+```toml
+[triggers]
+crons = ["0 0 * * *", "0 12 * * *"]
+```
+
+`app/app.rb`
+
+```ruby
+cron "0 0 * * *" do |event, ctx|
+  ctx.env(:MY_KV).put("nightly_report", event.scheduled_time)
+end
+
+cron "*" do |event, _ctx|
+  puts "Cron fired: #{event.cron}"
+end
+```
+
+- Handlers run in the order they’re defined. All matches execute, so you can pair specific jobs with a final `cron "*"` fallback.
+- Each handler receives the ScheduledEvent metadata (`event.cron`, `event.scheduled_time`, `event.retry_count`, etc.) along with a `ScheduledContext` exposing the same helpers as the HTTP `RequestContext`.
+- If Wrangler triggers a cron that lacks a Ruby handler, the runtime logs a warning every time that event fires—add an empty block if you want to intentionally ignore it.
+
 ### HTTP Requests to External Services
 
 The built-in `Http` client lets you call external APIs through Cloudflare Workers’ `fetch`. It exposes synchronous-looking methods inside Ruby while delegating the actual request to TypeScript.

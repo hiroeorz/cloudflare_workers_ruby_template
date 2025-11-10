@@ -158,6 +158,33 @@ rescue WorkersAI::Error => e
 end
 ```
 
+### スケジュール済み Cron イベント
+
+Cron の発火タイミングは `wrangler.toml` の `[triggers].crons` に記述し、Ruby 側では `cron` DSL で処理を定義します。
+
+`wrangler.toml`
+
+```toml
+[triggers]
+crons = ["0 0 * * *", "0 12 * * *"]
+```
+
+`app/app.rb`
+
+```ruby
+cron "0 0 * * *" do |event, ctx|
+  ctx.env(:MY_KV).put("nightly_report", event.scheduled_time)
+end
+
+cron "*" do |event, _ctx|
+  puts "Cron fired: #{event.cron}"
+end
+```
+
+- ハンドラは宣言順に評価され、マッチしたものはすべて実行されます。最後に `cron "*"` を置けばフォールバックとして利用できます。
+- ブロックの `event` には `event.cron` / `event.scheduled_time` / `event.retry_count` など Workers から渡された情報が入り、`ctx` は HTTP ルートと同じ `env(:MY_KV)` や `json` などを備えた `ScheduledContext` です。
+- `wrangler.toml` に定義されている Cron に Ruby 側のハンドラが無い場合、毎回警告ログが出るため定義漏れに気付きやすくなっています。意図的に空処理にしたい場合は空ブロックを書いてください。
+
 ### 外部サービスへの HTTP リクエスト
 
 組み込みの `Http` クライアントを使うと、Cloudflare Workers 側の `fetch` を経由して外部 API にアクセスできます。Ruby からは同期的に見える API で、内部的に TypeScript に委譲しています。

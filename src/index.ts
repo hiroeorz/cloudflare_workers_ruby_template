@@ -1,6 +1,7 @@
 import "@hibana-apps/runtime/polyfills"
 import {
   runtimeFetch,
+  runtimeScheduled,
   setApplicationScripts,
   type Env,
 } from "@hibana-apps/runtime"
@@ -16,5 +17,8 @@ setApplicationScripts([
 export default {
   fetch(request: Request, env: Env): Promise<Response> {
     return runtimeFetch(request, env)
+  },
+  scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    return runtimeScheduled(event, env, ctx)
   },
 }
