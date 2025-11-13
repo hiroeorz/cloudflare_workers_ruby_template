@@ -9,9 +9,11 @@ import appMain from "../app/app.rb"
 import "./generated/helper-scripts"
 import "./generated/template-assets"
 import "./generated/static-assets"
+import { durableScripts } from "./generated/durable-manifest"
 
 setApplicationScripts([
   { filename: "app/app.rb", source: appMain },
+  ...durableScripts,
 ])
 
 export default {
@@ -22,3 +24,5 @@ export default {
     return runtimeScheduled(event, env, ctx)
   },
 }
+
+export * from "./generated/durable-manifest"

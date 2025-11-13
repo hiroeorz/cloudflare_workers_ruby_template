@@ -21,6 +21,15 @@ binding = "MY_R2"
 bucket_name = "wasm-r2-sample"
 preview_bucket_name = "wasm-r2-sample"
 
+[durable_objects]
+bindings = [
+  { name = "COUNTER", class_name = "Counter" },
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["Counter"]
+
 [ai]
 binding = "AI"
 remote = true
