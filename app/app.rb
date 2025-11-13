@@ -3,14 +3,6 @@
 require "json"
 require "js"
 
-def await_js(value)
-  if value.respond_to?(:await)
-    value.await
-  else
-    value
-  end
-end
-
 # Binding register.
 R2.register_binding("MY_R2")
 KV.register_binding("MY_KV")
@@ -104,18 +96,14 @@ get "/r2" do |c|
 end
 
 get "/durable/counter" do |c|
-  namespace = c.env(:COUNTER)
-  object_id = namespace.idFromName("global-counter")
-  stub = namespace.get(object_id)
+  result = c.env(:COUNTER)
+    .fetch(name: "global-counter")
+    .json do
+      post json: { action: "increment" }
+    end
 
-  request = JS.global[:Request].new("https://durable/counter")
-  response = await_js(stub.call("fetch", request))
-  body_js = await_js(response.call("text"))
-  body = body_js.respond_to?(:to_ruby) ? body_js.to_ruby : body_js.to_s
-
-  payload = JSON.parse(body)
-  c.json(payload)
-rescue => e
+  c.json(result)
+rescue Hibana::DurableObject::Error => e
   c.json({ error: e.message }, status: 500)
 end
 
