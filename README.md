@@ -150,6 +150,23 @@ get "/r2" do |c|
 end
 ```
 
+### Queue (Send)
+
+```ruby
+post "/jobs" do |c|
+  payload = {
+    id: SecureRandom.uuid,
+    body: c.raw_body.to_s,
+  }
+  c.env(:TASK_QUEUE).enqueue(payload, metadata: { source: "template" })
+  c.text("Queued #{payload[:id]}", status: 202)
+end
+```
+
+- Bindings that end with `_QUEUE` automatically expose a queue producer; the template wires `TASK_QUEUE` in `wrangler.toml`.
+- Hash/Array payloads are serialized to JSON with `contentType = "json"` automatically, while plain strings default to `"text"`.
+- Create the backing queue via `wrangler queues create wasm-ruby-template-tasks` (or adjust the name/binding to match your environment).
+
 ### Workers AI
 
 You can also integrate with Workers AI. Each model expects different payload fields, so adjust the arguments accordingly.

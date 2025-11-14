@@ -108,6 +108,23 @@ get "/r2" do |c|
 end
 ```
 
+### Queue（送信）
+
+```ruby
+post "/jobs" do |c|
+  payload = {
+    id: SecureRandom.uuid,
+    body: c.raw_body.to_s,
+  }
+  c.env(:TASK_QUEUE).enqueue(payload, metadata: { source: "template" })
+  c.text("Queued #{payload[:id]}", status: 202)
+end
+```
+
+- `_QUEUE` で終わるバインディングは自動でキュープロデューサーにラップされ、このテンプレートでは `wrangler.toml` に `TASK_QUEUE` を定義済みです。
+- `Hash` や `Array` を渡すと自動で JSON にシリアライズされ `contentType = "json"` になります。文字列は既定で `contentType = "text"` として送信されます。
+- 実運用では `wrangler queues create wasm-ruby-template-tasks` などでバックエンドの Queue を作成してから利用してください（必要に応じて名称を変更）。
+
 ### Workers AI
 
 Workers AI との連携もできます。渡すパラメータはモデルによって異なるので注意してください。

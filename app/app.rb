@@ -2,6 +2,7 @@
 
 require "json"
 require "js"
+require "securerandom"
 
 # Binding register.
 R2.register_binding("MY_R2")
@@ -36,6 +37,16 @@ get "/query" do |c|
   name = c.query["name"]
   age = c.query["age"]
   c.text("Name: #{name}, Age: #{age}")
+end
+
+# Cloudflare Queue sample.
+post "/jobs" do |c|
+  payload = {
+    id: SecureRandom.uuid,
+    body: c.raw_body.to_s,
+  }
+  c.env(:TASK_QUEUE).enqueue(payload, metadata: { source: "template" })
+  c.text("Queued #{payload[:id]}", status: 202)
 end
 
 # POST sample.
