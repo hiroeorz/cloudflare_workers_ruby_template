@@ -167,6 +167,25 @@ end
 - Hash/Array payloads are serialized to JSON with `contentType = "json"` automatically, while plain strings default to `"text"`.
 - Create the backing queue via `wrangler queues create wasm-ruby-template-tasks` (or adjust the name/binding to match your environment).
 
+### Queue (Consume)
+
+```ruby
+queue binding: :TASK_QUEUE do |batch, ctx|
+  batch.each do |message|
+    puts "[queue] processing #{message.id}"
+    puts "payload: #{message.body.inspect}"
+    message.ack!
+  rescue => error
+    warn "[queue] retry #{message.id}: #{error.message}"
+    message.retry!(delay_seconds: 30)
+  end
+end
+```
+
+- `queue binding: :TASK_QUEUE` registers a consumer for the queue attached via `[[queues.consumers]]` in `wrangler.toml`.
+- Each `batch` exposes `messages`, `ack_all!`, `retry_all!`, while individual `message` objects provide `body`, `raw_body`, `timestamp`, `ack!`, and `retry!(delay_seconds:)`.
+- Any exception propagated out of the block bubbles up to Workers so the batch is retried; acknowledge messages you’ve processed successfully before raising.
+
 ### Workers AI
 
 You can also integrate with Workers AI. Each model expects different payload fields, so adjust the arguments accordingly.

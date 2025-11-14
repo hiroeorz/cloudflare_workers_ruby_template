@@ -49,6 +49,16 @@ post "/jobs" do |c|
   c.text("Queued #{payload[:id]}", status: 202)
 end
 
+queue binding: :TASK_QUEUE do |batch, _ctx|
+  batch.each do |message|
+    puts "[queue] Processing #{message.id} (#{message.body.inspect})"
+    message.ack!
+  rescue => error
+    warn "[queue] Failed #{message.id}: #{error.message}"
+    message.retry!(delay_seconds: 30)
+  end
+end
+
 # POST sample.
 # exp:
 #   curl -i -X POST "http://localhost:8787/echo" -H "Content-Type: application/json" -d '{"name":"Shin","age":50}'

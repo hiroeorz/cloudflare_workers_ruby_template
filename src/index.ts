@@ -2,6 +2,7 @@ import "@hibana-apps/runtime/polyfills"
 import {
   runtimeFetch,
   runtimeScheduled,
+  runtimeQueue,
   setApplicationScripts,
   type Env,
 } from "@hibana-apps/runtime"
@@ -22,6 +23,9 @@ export default {
   },
   scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
     return runtimeScheduled(event, env, ctx)
+  },
+  queue(batch: MessageBatch, env: Env, ctx: ExecutionContext): Promise<void> {
+    return runtimeQueue(batch, env, ctx)
   },
 }
 

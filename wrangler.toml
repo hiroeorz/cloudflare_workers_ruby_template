@@ -25,6 +25,10 @@ preview_bucket_name = "wasm-r2-sample"
 binding = "TASK_QUEUE"
 queue = "wasm-ruby-template-tasks"
 
+[[queues.consumers]]
+binding = "TASK_QUEUE"
+queue = "wasm-ruby-template-tasks"
+
 [durable_objects]
 bindings = [
   { name = "COUNTER", class_name = "Counter" },

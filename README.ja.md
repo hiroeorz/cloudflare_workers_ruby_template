@@ -125,6 +125,24 @@ end
 - `Hash` や `Array` を渡すと自動で JSON にシリアライズされ `contentType = "json"` になります。文字列は既定で `contentType = "text"` として送信されます。
 - 実運用では `wrangler queues create wasm-ruby-template-tasks` などでバックエンドの Queue を作成してから利用してください（必要に応じて名称を変更）。
 
+### Queue（受信）
+
+```ruby
+queue binding: :TASK_QUEUE do |batch, ctx|
+  batch.each do |message|
+    puts "[queue] #{message.id}: #{message.body.inspect}"
+    message.ack!
+  rescue => e
+    warn "[queue] retry #{message.id}: #{e.message}"
+    message.retry!(delay_seconds: 30)
+  end
+end
+```
+
+- `wrangler.toml` に `[[queues.consumers]]` を追加すると、該当バッチが Ruby に渡されます。`queue binding: :TASK_QUEUE` を複数定義すると、バインディング名・キュー名でフィルタできます。
+- `batch.messages` は Ruby オブジェクトに自動変換され、`message.body` で JSON（または文字列）をそのまま扱えます。`ack!` したメッセージは再配信されません。
+- ハンドラ内で未処理の例外が起きると Cloudflare 側でバッチ全体がリトライされるため、成功したメッセージは確実に `ack!`、リトライしたいものは `retry!(delay_seconds:)` を呼んでから例外を投げてください。
+
 ### Workers AI
 
 Workers AI との連携もできます。渡すパラメータはモデルによって異なるので注意してください。
